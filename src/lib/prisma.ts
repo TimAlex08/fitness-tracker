@@ -6,7 +6,11 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
+  // En producción usa la URL pooled para soportar conexiones concurrentes serverless.
+  // En local usa DATABASE_URL directamente (ambas apuntan al mismo servidor).
+  const connectionString =
+    process.env.DATABASE_URL_POOLED ?? process.env.DATABASE_URL!
+  const adapter = new PrismaPg({ connectionString })
   return new PrismaClient({ adapter })
 }
 
