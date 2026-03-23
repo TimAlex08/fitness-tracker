@@ -1,0 +1,49 @@
+/**
+ * Configuración de navegación — OCP aplicado:
+ * Agregar una nueva ruta = agregar un objeto a NAV_ITEMS.
+ * El sidebar y el header móvil leen esta config sin modificarse.
+ */
+
+import {
+  Dumbbell,
+  Home,
+  CalendarDays,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react"
+
+export type NavItem = {
+  /** Texto visible en el menú */
+  label: string
+  /** Ruta de Next.js */
+  href: string
+  /** Ícono de lucide-react */
+  icon: LucideIcon
+  /** Si true: se muestra pero no es clickeable (feature pendiente) */
+  comingSoon?: boolean
+}
+
+export const NAV_ITEMS: NavItem[] = [
+  {
+    label: "Dashboard",
+    href: "/",
+    icon: Home,
+  },
+  {
+    label: "Ejercicios",
+    href: "/exercises",
+    icon: Dumbbell,
+  },
+  {
+    label: "Hoy",
+    href: "/today",
+    icon: CalendarDays,
+    comingSoon: true,
+  },
+  {
+    label: "Progreso",
+    href: "/progress",
+    icon: TrendingUp,
+    comingSoon: true,
+  },
+]
