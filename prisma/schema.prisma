@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Exercise {
+  id                 String   @id @default(cuid())
+  name               String
+  slug               String   @unique
+  description        String?
+  muscleGroup        String
+  category           String
+  defaultSets        Int?
+  defaultReps        Int?
+  defaultDurationSec Int?
+  defaultRestSec     Int      @default(60)
+  defaultTempo       String?
+  defaultRpe         Int?
+  jointStress        String   @default("LOW")
+  targetJoints       String?
+  safetyNotes        String?
+  createdAt          DateTime @default(now())
+
+  exerciseLogs ExerciseLog[]
+}
+
+model DailyLog {
+  id           String   @id @default(cuid())
+  date         DateTime @unique
+  status       String   @default("PENDING")
+  overallRpe   Int?
+  energyLevel  Int?
+  sleepHours   Float?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  exerciseLogs ExerciseLog[]
+}
+
+model ExerciseLog {
+  id            String   @id @default(cuid())
+  dailyLogId    String
+  dailyLog      DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  exerciseId    String
+  exercise      Exercise @relation(fields: [exerciseId], references: [id])
+  completed     Boolean  @default(false)
+  setsCompleted Int?
+  repsPerSet    String?  // JSON array: "[12,10,8]"
+  rpeActual     Int?
+  notes         String?
+  createdAt     DateTime @default(now())
+}
