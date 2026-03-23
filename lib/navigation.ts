@@ -38,7 +38,6 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Hoy",
     href: "/today",
     icon: CalendarDays,
-    comingSoon: true,
   },
   {
     label: "Progreso",

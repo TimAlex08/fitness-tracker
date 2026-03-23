@@ -6,50 +6,279 @@ datasource db {
   provider = "postgresql"
 }
 
+// ---------- Catálogo de Ejercicios ---------- //
+
 model Exercise {
-  id                 String   @id @default(cuid())
-  name               String
-  slug               String   @unique
-  description        String?
-  muscleGroup        String
-  category           String
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  videoUrl    String?
+
+  // Clasificación
+  muscleGroup  MuscleGroup
+  movementType MovementType
+  category     ExerciseCategory
+  difficulty   Int              @default(1)
+
+  // Progresión / regresión → jerarquía
+  parentId String?
+  parent   Exercise?  @relation("ExerciseVariants", fields: [parentId], references: [id])
+  variants Exercise[] @relation("ExerciseVariants")
+
+  // Parámetros por defecto
   defaultSets        Int?
   defaultReps        Int?
   defaultDurationSec Int?
-  defaultRestSec     Int      @default(60)
+  defaultRestSec     Int     @default(60)
   defaultTempo       String?
   defaultRpe         Int?
-  jointStress        String   @default("LOW")
-  targetJoints       String?
-  safetyNotes        String?
-  createdAt          DateTime @default(now())
 
-  exerciseLogs ExerciseLog[]
+  // Seguridad
+  jointStress       JointStress @default(LOW)
+  targetJoints      String?
+  contraindications String?
+  safetyNotes       String?
+
+  // Carga estimada (peso corporal)
+  bodyweightPercent Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routineExercises RoutineExercise[]
+  exerciseLogs     ExerciseLog[]
+
+  @@index([muscleGroup])
+  @@index([category])
+  @@index([parentId])
 }
 
+// ---------- Programa de Entrenamiento ---------- //
+
+model Program {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  phases Phase[]
+}
+
+model Phase {
+  id          String  @id @default(cuid())
+  programId   String
+  program     Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name        String
+  order       Int
+  weekStart   Int
+  weekEnd     Int
+  description String?
+  rpeTarget   String?
+  tempoDefault String?
+  benchmarks  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  routines Routine[]
+}
+
+model Routine {
+  id          String      @id @default(cuid())
+  phaseId     String
+  phase       Phase       @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  name        String
+  dayOfWeek   String?
+  sessionType SessionType
+  durationMin Int?
+  description String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exercises RoutineExercise[]
+  dailyLogs DailyLog[]
+}
+
+model RoutineExercise {
+  id         String   @id @default(cuid())
+  routineId  String
+  routine    Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  order       Int
+  block       String?
+  sets        Int?
+  reps        Int?
+  durationSec Int?
+  restSec     Int?
+  tempo       String?
+  rpe         Int?
+  notes       String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([routineId, exerciseId, order])
+  @@index([routineId])
+}
+
+// ---------- Registro Diario ---------- //
+
 model DailyLog {
-  id           String   @id @default(cuid())
-  date         DateTime @unique
-  status       String   @default("PENDING")
+  id        String   @id @default(cuid())
+  date      DateTime
+  routineId String?
+  routine   Routine? @relation(fields: [routineId], references: [id])
+
+  isFreeSession Boolean          @default(false)
+  status        CompletionStatus @default(PENDING)
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  durationMin   Int?
+
+  // Percepción subjetiva
   overallRpe   Int?
   energyLevel  Int?
   sleepHours   Float?
-  notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sleepQuality Int?
+  bodyWeight   Float?
+  mood         Int?
+
+  // Dolor
+  painLevel Int?
+  painNotes String?
+
+  notes String?
+
+  // Samsung Watch 5 (entrada manual)
+  watchHrAvg         Int?
+  watchHrMax         Int?
+  watchCalories      Int?
+  watchActiveMinutes Int?
+  watchSpO2          Int?
+  watchStressScore   Int?
+  watchHrZones       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   exerciseLogs ExerciseLog[]
+
+  @@unique([date, routineId])
+  @@index([date])
+  @@index([status])
 }
 
 model ExerciseLog {
-  id            String   @id @default(cuid())
-  dailyLogId    String
-  dailyLog      DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
-  exerciseId    String
-  exercise      Exercise @relation(fields: [exerciseId], references: [id])
-  completed     Boolean  @default(false)
+  id         String   @id @default(cuid())
+  dailyLogId String
+  dailyLog   DailyLog @relation(fields: [dailyLogId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  completed     Boolean @default(false)
   setsCompleted Int?
-  repsPerSet    String?  // JSON array: "[12,10,8]"
-  rpeActual     Int?
-  notes         String?
-  createdAt     DateTime @default(now())
+  repsPerSet    String?
+  durationSec   Int?
+  holdTimeSec   String?
+
+  rpeActual   Int?
+  formQuality FormQuality?
+  painDuring  Int?
+
+  usedRegression Boolean @default(false)
+  regressionNote String?
+
+  notes String?
+
+  createdAt DateTime @default(now())
+
+  @@index([dailyLogId])
+  @@index([exerciseId])
+  @@index([createdAt])
+}
+
+// ---------- Mediciones Corporales ---------- //
+
+model BodyMeasurement {
+  id       String   @id @default(cuid())
+  date     DateTime
+  weight   Float?
+  waistCm  Float?
+  hipCm    Float?
+  chestCm  Float?
+  armCm    Float?
+  thighCm  Float?
+  notes    String?
+  photoUrl String?
+
+  createdAt DateTime @default(now())
+
+  @@index([date])
+}
+
+// ---------- Enums ---------- //
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  LEGS
+  SHOULDERS
+  CORE
+  MOBILITY
+  FULL_BODY
+}
+
+enum MovementType {
+  PUSH
+  PULL
+  SQUAT
+  HINGE
+  CARRY
+  ISOMETRIC
+  MOBILITY
+  ACTIVATION
+}
+
+enum ExerciseCategory {
+  STANDARD
+  REGRESSION
+  PROGRESSION
+  PREHAB
+  WARMUP
+  COOLDOWN
+}
+
+enum JointStress {
+  NONE
+  LOW
+  MODERATE
+  HIGH
+}
+
+enum SessionType {
+  TRAINING
+  MOBILITY
+  REST
+  DELOAD
+}
+
+enum CompletionStatus {
+  PENDING
+  COMPLETED
+  PARTIAL
+  SKIPPED
+}
+
+enum FormQuality {
+  PERFECT
+  GOOD
+  FAIR
+  POOR
 }
