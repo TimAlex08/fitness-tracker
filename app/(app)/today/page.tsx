@@ -1,15 +1,19 @@
 /**
  * TodayPage — vista principal de sesión activa.
- * Server Component: obtiene datos de rutina y log del día desde la DB.
+ * Server Component: obtiene datos de rutina, log del día y catálogo de ejercicios.
  * Delega toda la interactividad a TodaySession (Client Component).
  */
 
 import { getTodayData } from "@/lib/daily-log"
+import { getAllExercises } from "@/lib/exercises"
 import { TodaySession } from "@/components/today/today-session"
 import { CalendarDays } from "lucide-react"
 
 export default async function TodayPage() {
-  const { routine, dailyLog } = await getTodayData()
+  const [{ routine, dailyLog }, allExercises] = await Promise.all([
+    getTodayData(),
+    getAllExercises(),
+  ])
 
   const today = new Date().toLocaleDateString("es-MX", {
     weekday: "long",
@@ -36,7 +40,11 @@ export default async function TodayPage() {
         )}
       </div>
 
-      <TodaySession routine={routine} dailyLog={dailyLog} />
+      <TodaySession
+        routine={routine}
+        dailyLog={dailyLog}
+        allExercises={allExercises}
+      />
     </div>
   )
 }

@@ -5,6 +5,7 @@
  */
 
 import { prisma } from "@/src/lib/prisma"
+import type { Exercise } from "@/types"
 import type { ExerciseCardData, MuscleGroup } from "@/types/exercise"
 
 /** Campos que seleccionamos — coincide exactamente con ExerciseCardData */
@@ -43,4 +44,14 @@ export async function getExercises(
 /** Devuelve el total de ejercicios en el catálogo */
 export async function getExerciseCount(): Promise<number> {
   return prisma.exercise.count()
+}
+
+/**
+ * Devuelve todos los ejercicios con todos sus campos.
+ * Usado por el ejercicio picker en la sesión libre.
+ */
+export async function getAllExercises(): Promise<Exercise[]> {
+  return prisma.exercise.findMany({
+    orderBy: [{ muscleGroup: "asc" }, { name: "asc" }],
+  })
 }
