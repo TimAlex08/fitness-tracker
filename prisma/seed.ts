@@ -18,6 +18,7 @@ interface ExerciseSeed {
   name: string
   slug: string
   description: string
+  imageUrl?: string
   muscleGroup: MuscleGroup
   movementType: MovementType
   category: ExerciseCategory
@@ -42,6 +43,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Cat-Cow",
     slug: "cat-cow",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cat_Stretch/0.jpg",
     description:
       "En cuadrupedia, alternar flexión/extensión de columna. Iniciar movimiento desde región torácica. Retención 3s en cada extremo.",
     muscleGroup: "MOBILITY",
@@ -69,6 +71,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Book Opener",
     slug: "book-opener",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Side-Lying_Floor_Stretch/0.jpg",
     description:
       "Acostado de lado, rodillas a 90°, rotar brazo superior hacia el techo abriendo pecho. Retención 3-5s.",
     muscleGroup: "MOBILITY",
@@ -82,6 +85,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Estiramiento flexor de cadera arrodillado",
     slug: "estiramiento-flexor-cadera",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Kneeling_Hip_Flexor/0.jpg",
     description:
       "Media rodilla, apretar glúteos, bascular pelvis hacia atrás. Avanzar suavemente hasta sentir estiramiento en la cadera.",
     muscleGroup: "MOBILITY",
@@ -95,6 +99,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "90/90 Hip Switches",
     slug: "hip-switches-90-90",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/90_90_Hamstring/0.jpg",
     description:
       "Sentado, rodillas flexionadas, pies anchos. Dejar caer rodillas a un lado (ambas a 90°). Alternar + retención 30s cada lado.",
     muscleGroup: "MOBILITY",
@@ -108,6 +113,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Chin Tucks",
     slug: "chin-tucks",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Chin_To_Chest_Stretch/0.jpg",
     description:
       "Retraer mentón creando 'doble papada'. Retención 5s. Realizar 5 veces al día en trabajo sedentario.",
     muscleGroup: "MOBILITY",
@@ -122,6 +128,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Retracciones escapulares",
     slug: "retracciones-escapulares",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Scapular_Pull-Up/0.jpg",
     description: "De pie, juntar omóplatos hacia atrás y abajo. Retención 3-5s.",
     muscleGroup: "BACK",
     movementType: "ACTIVATION",
@@ -135,6 +142,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Basculación pélvica posterior",
     slug: "basculacion-pelvica-posterior",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pelvic_Tilt_Into_Bridge/0.jpg",
     description:
       "De pie, 'meter el coxis' contrayendo abdominales y glúteos. Retención 5s.",
     muscleGroup: "CORE",
@@ -149,6 +157,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Child's Pose",
     slug: "childs-pose",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Childs_Pose/0.jpg",
     description:
       "Arrodillarse, sentarse sobre talones, extender brazos adelante. Respirar profundo.",
     muscleGroup: "MOBILITY",
@@ -223,6 +232,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Flexiones inclinadas",
     slug: "flexiones-inclinadas",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Push-Up/0.jpg",
     description:
       "Manos sobre superficie elevada (encimera → mesa → silla). Cuerpo en línea recta inclinada. Progresar bajando la superficie.",
     muscleGroup: "CHEST",
@@ -240,6 +250,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Flexiones estándar",
     slug: "flexiones-estandar",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Pushups/0.jpg",
     description:
       "Manos anchura de hombros, cuerpo línea recta cabeza-tobillos, descender hasta pecho casi al suelo.",
     muscleGroup: "CHEST",
@@ -257,6 +268,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Sentadilla asistida",
     slug: "sentadilla-asistida",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Goblet_Squat/0.jpg",
     description:
       "Agarrarse a marco de puerta o encimera. Descender empujando caderas atrás. Profundidad: hasta silla o ~45°. Tibias lo más verticales posible.",
     muscleGroup: "LEGS",
@@ -276,6 +288,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Elevaciones pronadas Y-T-W",
     slug: "elevaciones-pronadas-ytw",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Superman/0.jpg",
     description:
       "Boca abajo. Y: brazos a 45° pulgares arriba. T: brazos a 90°. W: codos flexionados, exprimir escápulas. Elevar 5-10 cm, retención 2-3s.",
     muscleGroup: "BACK",
@@ -293,6 +306,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Puente de glúteos",
     slug: "puente-de-gluteos",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Single_Leg_Glute_Bridge/0.jpg",
     description:
       "Supino, rodillas flexionadas. Apretar glúteos, elevar caderas a línea recta. Retención 3s arriba. No hiperextender lumbar.",
     muscleGroup: "LEGS",
@@ -310,6 +324,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "Dead Bug (solo brazos)",
     slug: "dead-bug-solo-brazos",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dead_Bug/0.jpg",
     description:
       "Supino, rodillas flexionadas, brazos al techo. Lumbar PEGADA al suelo. Bajar un brazo atrás en 3s, subir en 2s. Si lumbar se despega, bajas demasiado.",
     muscleGroup: "CORE",
@@ -328,6 +343,7 @@ const exercises: ExerciseSeed[] = [
   {
     name: "McGill Curl-Up modificado",
     slug: "mcgill-curl-up",
+    imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Crunches/0.jpg",
     description:
       "Supino, 1 rodilla flexionada, 1 pierna recta. Manos bajo arco lumbar. Tensar abdominales, elevar cabeza+hombros+pecho como UNIDAD. NO hacer crunch.",
     muscleGroup: "CORE",
