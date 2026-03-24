@@ -8,7 +8,7 @@
 
 import { Flame } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { buildYearGrid } from "@/lib/training"
+import { buildYearGrid } from "@/lib/training-utils"
 import type { YearData, DayStatus, HeatmapCell } from "@/types/training"
 
 const MONTH_NAMES_SHORT = [
