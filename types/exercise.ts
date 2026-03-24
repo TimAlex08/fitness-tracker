@@ -35,6 +35,7 @@ export type ExerciseCardData = {
   name: string
   slug: string
   description: string | null
+  imageUrl: string | null
   muscleGroup: MuscleGroup
   category: ExerciseCategory
   defaultSets: number | null

@@ -14,6 +14,7 @@ const EXERCISE_CARD_SELECT = {
   name: true,
   slug: true,
   description: true,
+  imageUrl: true,
   muscleGroup: true,
   category: true,
   defaultSets: true,
