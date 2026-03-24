@@ -26,14 +26,17 @@ const EXERCISE_CARD_SELECT = {
 } as const
 
 /**
- * Devuelve todos los ejercicios del catálogo.
- * Si se pasa muscleGroup, filtra por ese grupo.
+ * Devuelve ejercicios del catálogo con filtros opcionales.
  */
 export async function getExercises(
-  muscleGroup?: MuscleGroup
+  muscleGroup?: MuscleGroup,
+  search?: string
 ): Promise<ExerciseCardData[]> {
   const exercises = await prisma.exercise.findMany({
-    where: muscleGroup ? { muscleGroup } : undefined,
+    where: {
+      ...(muscleGroup && { muscleGroup }),
+      ...(search && { name: { contains: search, mode: "insensitive" } }),
+    },
     select: EXERCISE_CARD_SELECT,
     orderBy: [{ muscleGroup: "asc" }, { name: "asc" }],
   })
@@ -48,10 +51,35 @@ export async function getExerciseCount(): Promise<number> {
 
 /**
  * Devuelve todos los ejercicios con todos sus campos.
- * Usado por el ejercicio picker en la sesión libre.
+ * Usado por el ejercicio picker en la sesión libre y el form de CRUD.
  */
 export async function getAllExercises(): Promise<Exercise[]> {
   return prisma.exercise.findMany({
     orderBy: [{ muscleGroup: "asc" }, { name: "asc" }],
+  })
+}
+
+/**
+ * Devuelve un ejercicio por ID con variantes y últimos 8 registros de rendimiento.
+ */
+export async function getExerciseWithDetails(id: string) {
+  return prisma.exercise.findUnique({
+    where: { id },
+    include: {
+      parent: true,
+      variants: { orderBy: { difficulty: "asc" } },
+      exerciseLogs: {
+        take: 8,
+        orderBy: { createdAt: "desc" },
+        include: {
+          dailyLog: {
+            select: {
+              date: true,
+              routine: { select: { name: true } },
+            },
+          },
+        },
+      },
+    },
   })
 }

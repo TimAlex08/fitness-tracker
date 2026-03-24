@@ -7,7 +7,7 @@
 import {
   Dumbbell,
   Home,
-  CalendarDays,
+  Activity,
   TrendingUp,
   type LucideIcon,
 } from "lucide-react"
@@ -35,9 +35,9 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Dumbbell,
   },
   {
-    label: "Hoy",
-    href: "/today",
-    icon: CalendarDays,
+    label: "Entrenamiento",
+    href: "/training",
+    icon: Activity,
   },
   {
     label: "Progreso",
