@@ -173,11 +173,11 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
         </div>
 
         <div className="pt-2 pb-6">
-          {total === 0 ? (
+          {totalCount === 0 ? (
             <p className="text-center text-xs text-zinc-600 py-2">
               Añade al menos un ejercicio para terminar la sesión.
             </p>
-          ) : completedCount === total ? (
+          ) : completedCount === totalCount ? (
             <Button
               onClick={() => setSessionPhase("post-session")}
               className="w-full bg-emerald-600 hover:bg-emerald-500 text-white gap-2"
@@ -191,7 +191,7 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
               onClick={() => setSessionPhase("post-session")}
               className="w-full border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600"
             >
-              Terminar sesión ({completedCount}/{total} ejercicios)
+              Terminar sesión ({completedCount}/{totalCount} ejercicios)
             </Button>
           )}
         </div>
