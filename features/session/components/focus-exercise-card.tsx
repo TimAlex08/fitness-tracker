@@ -61,53 +61,53 @@ export function FocusExerciseCard({
         className
       )}
     >
-      {/* Visual / Image Area */}
-      <div className="relative aspect-video bg-zinc-900 flex items-center justify-center overflow-hidden">
+      {/* Visual / Image Area - Reduced height on mobile */}
+      <div className="relative h-32 sm:h-48 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
         {re.exercise.imageUrl ? (
           <Image
             src={re.exercise.imageUrl}
             alt={re.exercise.name}
             fill
-            className="object-cover opacity-60"
+            className="object-cover opacity-40"
             priority
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-zinc-700">
-            <PlayCircle className="h-12 w-12" />
-            <span className="text-xs uppercase tracking-widest font-medium">Sin video</span>
+          <div className="flex flex-col items-center gap-1 text-zinc-700">
+            <PlayCircle className="h-8 w-8" />
+            <span className="text-[10px] uppercase tracking-widest font-medium">Sin video</span>
           </div>
         )}
 
         {/* Floating status */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-3 right-3">
           {state.completed ? (
-            <div className="bg-emerald-500 text-white rounded-full p-1.5 shadow-lg animate-in zoom-in duration-300">
-              <CheckCircle2 className="h-6 w-6" />
+            <div className="bg-emerald-500 text-white rounded-full p-1 shadow-lg animate-in zoom-in duration-300">
+              <CheckCircle2 className="h-5 w-5" />
             </div>
           ) : (
-            <div className="bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-zinc-400 rounded-full p-2">
-              <Circle className="h-5 w-5" />
+            <div className="bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-zinc-400 rounded-full p-1.5">
+              <Circle className="h-4 w-4" />
             </div>
           )}
         </div>
 
         {/* Block Badge */}
-        <div className="absolute bottom-4 left-4">
-          <Badge variant="outline" className={cn("bg-black/40 backdrop-blur-md border border-zinc-700 uppercase tracking-widest text-[10px] font-bold px-3 py-1", muscleColor)}>
+        <div className="absolute bottom-3 left-3">
+          <Badge variant="outline" className={cn("bg-black/40 backdrop-blur-md border border-zinc-700 uppercase tracking-widest text-[9px] font-bold px-2 py-0.5", muscleColor)}>
             {re.block === "warmup" ? "Calentamiento" : re.block === "cooldown" ? "Vuelta a la calma" : re.exercise.muscleGroup}
           </Badge>
         </div>
       </div>
 
-      {/* Content Area */}
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2 leading-tight">
+      {/* Content Area - Compacted for no-scroll */}
+      <div className="p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
+        <div className="mb-3 shrink-0">
+          <h2 className="text-xl font-bold text-white mb-0.5 leading-tight truncate">
             {re.exercise.name}
           </h2>
-          <div className="flex items-center gap-2 text-sm text-zinc-400">
-            <span className="bg-zinc-800 text-zinc-200 px-2 py-0.5 rounded font-medium">
-              Objetivo: {formatTarget(re)}
+          <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+            <span className="text-emerald-400 font-bold uppercase tracking-tighter">
+              {formatTarget(re)}
             </span>
             {re.tempo && (
               <span className="text-zinc-500">· Tempo {re.tempo}</span>
@@ -115,18 +115,18 @@ export function FocusExerciseCard({
           </div>
         </div>
 
-        {/* Safety Note */}
-        {re.exercise.safetyNotes && (
-          <div className="flex gap-3 p-4 bg-zinc-900/50 rounded-2xl mb-6 border border-zinc-800/50">
-            <Info className="h-5 w-5 text-emerald-500 shrink-0" />
-            <p className="text-xs text-zinc-400 leading-relaxed italic">
+        {/* Safety Note - Compacted */}
+        {re.exercise.safetyNotes && !state.completed && (
+          <div className="flex gap-2 p-2 bg-zinc-900/50 rounded-xl mb-3 border border-zinc-800/50 shrink-0">
+            <Info className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
+            <p className="text-[10px] text-zinc-500 leading-tight line-clamp-2">
               {re.exercise.safetyNotes}
             </p>
           </div>
         )}
 
-        {/* Form or Summary */}
-        <div className="flex-1">
+        {/* Form or Summary - Scrollable if really needed but targeted to fit */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {!state.completed ? (
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
               <ExerciseActiveForm

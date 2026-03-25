@@ -36,9 +36,8 @@ export function ExerciseActiveForm({
   targetReps, targetDuration, onSetReps, onRpe, onPain, onNotes, onComplete,
 }: ExerciseActiveFormProps) {
   return (
-    <>
-      <div className="space-y-2 mb-4">
-        <p className="text-xs text-zinc-500 font-medium">Series</p>
+    <div className="flex flex-col h-full">
+      <div className="space-y-1 mb-3">
         {Array.from({ length: numSets }).map((_, i) => (
           <SetRow
             key={i}
@@ -52,53 +51,67 @@ export function ExerciseActiveForm({
         ))}
       </div>
 
-      <div className="mb-4">
-        <p className="text-xs text-zinc-500 font-medium mb-2">RPE real (dificultad percibida)</p>
-        <div className="flex gap-1 flex-wrap">
-          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-            <button
-              key={n}
-              onClick={() => onRpe(n)}
-              className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${rpeActual === n ? "bg-emerald-500 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
-            >
-              {n}
-            </button>
-          ))}
+      <div className="grid grid-cols-2 gap-3 mb-3">
+        <div className="space-y-1.5">
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">RPE Real</p>
+          <div className="flex gap-1 flex-wrap">
+            {[7, 8, 9, 10].map((n) => (
+              <button
+                key={n}
+                onClick={() => onRpe(n)}
+                className={cn(
+                  "h-7 w-7 rounded-lg text-xs font-bold transition-all",
+                  rpeActual === n 
+                    ? "bg-emerald-500 text-white scale-110 shadow-lg" 
+                    : "bg-zinc-900 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Dolor (0-5)</p>
+          <div className="flex gap-1">
+            {[0, 2, 4, 5].map((n) => (
+              <button
+                key={n}
+                onClick={() => onPain(n)}
+                className={cn(
+                  "h-7 w-7 rounded-lg text-xs font-bold transition-all",
+                  painDuring === n 
+                    ? PAIN_COLORS[n] + " scale-110 shadow-lg" 
+                    : "bg-zinc-900 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="mb-4">
-        <p className="text-xs text-zinc-500 font-medium mb-2">Dolor durante el ejercicio</p>
-        <div className="flex gap-1">
-          {[0, 1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              onClick={() => onPain(n)}
-              className={`h-8 w-8 rounded-lg text-xs font-medium transition-colors ${painDuring === n ? PAIN_COLORS[n] : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"}`}
-            >
-              {n}
-            </button>
-          ))}
-        </div>
-        <p className="text-xs text-zinc-600 mt-1">0 = sin dolor · 5 = dolor intenso</p>
-      </div>
-
-      <div className="mb-4">
+      <div className="mb-3">
         <Textarea
           value={notes}
           onChange={(e) => onNotes(e.target.value)}
-          placeholder="Notas opcionales (ej: bajé la superficie, sentí tensión en hombro...)"
-          className="text-xs bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-600 resize-none min-h-[60px]"
+          placeholder="Notas rápidas..."
+          className="text-[11px] bg-zinc-900 border-zinc-800 text-zinc-400 placeholder-zinc-700 resize-none min-h-[40px] rounded-xl focus:border-emerald-500/50"
         />
       </div>
 
-      <Button
-        onClick={onComplete}
-        disabled={submitting}
-        className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-sm"
-      >
-        {submitting ? "Guardando..." : "Marcar como completado"}
-      </Button>
-    </>
+      <div className="mt-auto">
+        <Button
+          onClick={onComplete}
+          disabled={submitting}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-10 rounded-xl uppercase tracking-widest"
+        >
+          {submitting ? "Guardando..." : "Terminar Ejercicio"}
+        </Button>
+      </div>
+    </div>
   )
 }
+

@@ -88,12 +88,13 @@ export function SessionFocusView({
           <div
             key={re.id}
             className={cn(
-              "shrink-0 w-full max-w-lg snap-center transition-all duration-500",
+              "shrink-0 w-full max-w-lg snap-center transition-all duration-500 h-[75vh] sm:h-auto",
               index !== currentExerciseIndex && "opacity-40 scale-95 blur-[1px]"
             )}
           >
             <FocusExerciseCard
               routineExercise={re}
+              className="h-full"
               state={exerciseStates[re.id]}
               onSetReps={(setIdx, reps) => onSetReps(re.id, setIdx, reps)}
               onRpe={(rpe) => onRpe(re.id, rpe)}
