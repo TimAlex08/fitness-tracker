@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { SetRow } from "./set-row"
 import type { SetLog } from "@/features/session/components/exercise-session-card"
+import { cn } from "@/lib/utils"
 
 const PAIN_COLORS = [
   "bg-emerald-500 text-white",
