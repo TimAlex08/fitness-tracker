@@ -9,7 +9,7 @@
 import { useState } from "react"
 import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ExerciseForm } from "@/components/exercises/exercise-form"
+import { ExerciseForm } from "@/features/exercises/components/exercise-form"
 import type { Exercise } from "@/types"
 
 type ExerciseActionsProps = {

@@ -11,7 +11,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { ExerciseForm } from "@/components/exercises/exercise-form"
+import { ExerciseForm } from "@/features/exercises/components/exercise-form"
 import type { Exercise } from "@/types"
 
 type ExerciseDetailActionsProps = {

@@ -11,7 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { Search } from "lucide-react"
 import { useTransition } from "react"
 import { cn } from "@/lib/utils"
-import type { MuscleGroup } from "@/types/exercise"
+import type { MuscleGroup } from "@/features/exercises/types/exercise.types"
 
 type FilterOption = {
   value: MuscleGroup | "ALL"

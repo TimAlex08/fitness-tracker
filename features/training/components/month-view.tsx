@@ -8,7 +8,7 @@
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { MonthData, MonthDay, DayStatus } from "@/types/training"
+import type { MonthData, MonthDay, DayStatus } from "@/features/training/types/training.types"
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",

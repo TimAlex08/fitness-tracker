@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { WeekView } from "./week-view"
 import { MonthView } from "./month-view"
 import { YearView } from "./year-view"
-import type { WeekData, MonthData, YearData } from "@/types/training"
+import type { WeekData, MonthData, YearData } from "@/features/training/types/training.types"
 
 type View = "week" | "month" | "year"
 

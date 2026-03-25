@@ -6,7 +6,7 @@
  */
 
 import { cn } from "@/lib/utils"
-import type { DayStatus } from "@/types/training"
+import type { DayStatus } from "@/features/training/types/training.types"
 
 interface DayCellProps {
   status: DayStatus | null

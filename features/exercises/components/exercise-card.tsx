@@ -10,7 +10,7 @@ import type {
   MuscleGroup,
   ExerciseCategory,
   JointStress,
-} from "@/types/exercise"
+} from "@/features/exercises/types/exercise.types"
 
 // ─── Mapas de presentación ────────────────────────────────────────────────────
 

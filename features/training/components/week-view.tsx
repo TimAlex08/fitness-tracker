@@ -9,7 +9,7 @@
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { DayCell } from "./day-cell"
-import type { WeekData, WeekDay } from "@/types/training"
+import type { WeekData, WeekDay } from "@/features/training/types/training.types"
 import type { CompletionStatus } from "@prisma/client"
 
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
