@@ -78,3 +78,16 @@ export function buildYearGrid(days: YearDay[]): HeatmapWeek[] {
 
   return weeks
 }
+
+/**
+ * Retorna un array de 7 fechas centradas en baseDate (3 antes, hoy, 3 después).
+ */
+export function getCenteredWeek(baseDate: Date): Date[] {
+  const days: Date[] = []
+  for (let i = -3; i <= 3; i++) {
+    const d = new Date(baseDate)
+    d.setDate(baseDate.getDate() + i)
+    days.push(d)
+  }
+  return days
+}

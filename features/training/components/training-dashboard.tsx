@@ -11,7 +11,8 @@ import { cn } from "@/lib/utils"
 import { WeekView } from "./week-view"
 import { MonthView } from "./month-view"
 import { YearView } from "./year-view"
-import type { WeekData, MonthData, YearData } from "@/features/training/types/training.types"
+import { WeeklyStrip } from "./weekly-strip"
+import type { WeekData, MonthData, YearData, DayStatus } from "@/features/training/types/training.types"
 
 type View = "week" | "month" | "year"
 
@@ -57,8 +58,17 @@ export function TrainingDashboard({ weekData }: TrainingDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Weekly Quick Access Strip */}
+      <WeeklyStrip 
+        daysData={weekData.days.map(d => ({ 
+          date: d.date, 
+          status: (d.isRest ? "REST" : d.dailyLog?.status ?? "PENDING") as DayStatus 
+        }))} 
+        className="-mx-4 md:mx-0 md:rounded-2xl"
+      />
+
       {/* Header con selector de vista */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between px-1">
         <div>
           <h1 className="text-2xl font-bold text-white">Entrenamiento</h1>
           <p className="text-sm text-zinc-500 mt-0.5">

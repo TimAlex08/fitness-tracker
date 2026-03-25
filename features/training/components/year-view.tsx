@@ -10,6 +10,7 @@ import { Flame } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buildYearGrid } from "@/features/training/utils/training-grid"
 import type { YearData, DayStatus, HeatmapCell } from "@/features/training/types/training.types"
+import Link from "next/link"
 
 const MONTH_NAMES_SHORT = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun",
@@ -115,13 +116,15 @@ function HeatmapSquare({ cell, year }: { cell: HeatmapCell; year: number }) {
   const label = formatTooltip(cell.date, status, year)
 
   return (
-    <div
-      title={label}
-      className={cn(
-        "w-3 h-3 rounded-sm transition-colors cursor-default",
-        CELL_COLORS[status]
-      )}
-    />
+    <Link href={`/training/session?date=${cell.date}`} className="group transition-transform hover:scale-125 z-10">
+      <div
+        title={label}
+        className={cn(
+          "w-3 h-3 rounded-sm transition-colors cursor-pointer",
+          CELL_COLORS[status]
+        )}
+      />
+    </Link>
   )
 }
 

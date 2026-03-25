@@ -108,7 +108,7 @@ function TodayCard({ day }: { day: WeekDay }) {
       {/* Botón de acción */}
       {!day.isRest && (
         <Link
-          href="/training/session"
+          href={`/training/session?date=${day.date}`}
           className={cn(
             "flex items-center justify-center gap-2 w-full rounded-lg px-4 py-3 text-sm font-semibold transition-colors",
             isCompleted
@@ -134,15 +134,18 @@ function CompactDayCard({ day }: { day: WeekDay }) {
   const status = day.isRest ? "REST" : (log?.status ?? "PENDING")
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 space-y-2">
+    <Link
+      href={`/training/session?date=${day.date}`}
+      className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 space-y-2 hover:bg-zinc-800 hover:border-zinc-700 transition-all group"
+    >
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-zinc-500 group-hover:text-zinc-400">
           {DAY_LABELS[day.dayOfWeek]}{" "}
           {new Date(day.date + "T00:00:00").getDate()}
         </span>
         <DayCell status={status} size="md" />
       </div>
-      <p className="text-sm font-medium text-zinc-300 truncate">
+      <p className="text-sm font-medium text-zinc-300 truncate group-hover:text-white">
         {day.isRest ? "Descanso" : (day.routine?.name ?? "Sin rutina")}
       </p>
       {log && !day.isRest && (
@@ -152,8 +155,8 @@ function CompactDayCard({ day }: { day: WeekDay }) {
         </div>
       )}
       {!log && !day.isRest && (
-        <p className="text-xs text-zinc-600">{STATUS_LABEL[status as CompletionStatus]}</p>
+        <p className="text-xs text-zinc-600 group-hover:text-zinc-500">{STATUS_LABEL[status as CompletionStatus]}</p>
       )}
-    </div>
+    </Link>
   )
 }

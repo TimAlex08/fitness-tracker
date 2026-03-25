@@ -9,6 +9,7 @@ import { useState } from "react"
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { MonthData, MonthDay, DayStatus } from "@/features/training/types/training.types"
+import Link from "next/link"
 
 const MONTH_NAMES = [
   "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -130,15 +131,16 @@ export function MonthView({ data, year, month, onMonthChange }: MonthViewProps) 
           const chainRight = !isFuture && isGoodDay(day) && !!nextDay && isGoodDay(nextDay) && nextDateStr! <= todayStr
 
           return (
-            <CalendarCell
-              key={dateStr}
-              date={dayNum}
-              status={day.isRest ? "REST" : day.status}
-              isToday={isToday}
-              isFuture={isFuture}
-              chainLeft={chainLeft}
-              chainRight={chainRight}
-            />
+            <Link key={dateStr} href={`/training/session?date=${dateStr}`} className="group">
+              <CalendarCell
+                date={dayNum}
+                status={day.isRest ? "REST" : day.status}
+                isToday={isToday}
+                isFuture={isFuture}
+                chainLeft={chainLeft}
+                chainRight={chainRight}
+              />
+            </Link>
           )
         })}
       </div>

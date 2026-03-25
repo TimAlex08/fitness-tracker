@@ -35,7 +35,8 @@ export function DayCell({ status, isToday, size = "md", tooltip }: DayCellProps)
         sizeClass,
         colorClass,
         isToday && "ring-2 ring-offset-2 ring-offset-zinc-950 ring-white",
-        "transition-opacity"
+        "transition-all duration-300 group-hover:scale-110 cursor-pointer shadow-lg",
+        status === "PENDING" && "opacity-50 group-hover:opacity-100"
       )}
     />
   )
