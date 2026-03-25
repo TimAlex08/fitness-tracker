@@ -14,6 +14,7 @@ import type { PostSessionData } from "@/features/session/components/post-session
 
 export type SessionPhase = "training" | "post-session" | "done"
 export type SessionMode = "structured" | "free"
+export type ViewMode = "list" | "focus"
 
 type UseSessionStateParams = {
   routine: RoutineWithExercises | null
@@ -33,10 +34,16 @@ function initExerciseState(
   }
 ): ExerciseState {
   const sets: SetLog[] = Array.from({ length: numSets }, (_, i) => {
-    const existingReps = existingLog?.repsPerSet
-      ? (JSON.parse(existingLog.repsPerSet) as number[])[i] ?? 0
-      : 0
-    return { reps: existingReps }
+    let reps = 0
+    if (existingLog?.repsPerSet) {
+      try {
+        const parsed = JSON.parse(existingLog.repsPerSet)
+        if (Array.isArray(parsed)) reps = parsed[i] ?? 0
+      } catch (e) {
+        console.warn("Error parsing repsPerSet", e)
+      }
+    }
+    return { reps }
   })
   return {
     sets,
@@ -74,6 +81,8 @@ function toVirtualRoutineExercise(
 
 export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
   const [mode, setMode] = useState<SessionMode>("structured")
+  const [viewMode, setViewMode] = useState<ViewMode>("list")
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [showPicker, setShowPicker] = useState(false)
   const [freeExercises, setFreeExercises] = useState<RoutineExerciseWithDetails[]>([])
   const [dailyLogId, setDailyLogId] = useState<string | null>(dailyLog?.id ?? null)
@@ -173,6 +182,18 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
     [exerciseStates, dailyLogId]
   )
 
+  const dismissRestTimer = useCallback(() => {
+    setRestTimer((t) => ({ ...t, visible: false }))
+    
+    // Auto-advance in Focus Mode
+    if (viewMode === "focus") {
+      const total = mode === "structured" ? (routine?.exercises.length ?? 0) : freeExercises.length
+      if (currentExerciseIndex < total - 1) {
+        setCurrentExerciseIndex(prev => prev + 1)
+      }
+    }
+  }, [viewMode, currentExerciseIndex, mode, routine, freeExercises])
+
   async function handleFinishSession(postData: PostSessionData) {
     const routineId = mode === "structured" ? routine?.id : undefined
     if (!dailyLogId) await ensureDailyLog(routineId)
@@ -196,10 +217,14 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
 
   return {
     mode,
+    viewMode,
+    setViewMode,
+    currentExerciseIndex,
+    setCurrentExerciseIndex,
     sessionPhase,
     setSessionPhase,
     restTimer,
-    dismissRestTimer: () => setRestTimer((t) => ({ ...t, visible: false })),
+    dismissRestTimer,
     exerciseStates,
     freeExercises,
     showPicker,
@@ -214,3 +239,4 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
     handleFinishSession,
   }
 }
+

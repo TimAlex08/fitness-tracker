@@ -137,7 +137,18 @@ body {
   body {
     @apply bg-background text-foreground;
   }
-  html {
-    @apply font-sans;
+    html {
+      @apply font-sans;
+    }
   }
-}
+  
+  @layer utilities {
+    .scrollbar-hide {
+      -ms-overflow-style: none; /* IE and Edge */
+      scrollbar-width: none; /* Firefox */
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none; /* Chrome, Safari and Opera */
+    }
+  }
+  

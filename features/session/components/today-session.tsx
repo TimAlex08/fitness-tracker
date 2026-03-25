@@ -8,7 +8,9 @@ import { ExerciseSessionCard } from "@/features/session/components/exercise-sess
 import { PostSessionForm } from "@/features/session/components/post-session-form"
 import { RestTimer } from "@/features/session/components/rest-timer"
 import { ExercisePicker } from "@/features/session/components/exercise-picker"
-import { CheckCircle2, Dumbbell, Plus, Trophy, ChevronDown, ChevronUp } from "lucide-react"
+import { FocusProgressBar } from "@/features/session/components/focus-progress-bar"
+import { SessionFocusView } from "@/features/session/components/session-focus-view"
+import { CheckCircle2, Dumbbell, Plus, Trophy, ChevronDown, ChevronUp, LayoutList, Focus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TodaySessionProps = {
@@ -20,6 +22,10 @@ type TodaySessionProps = {
 export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionProps) {
   const {
     mode,
+    viewMode,
+    setViewMode,
+    currentExerciseIndex,
+    setCurrentExerciseIndex,
     sessionPhase,
     setSessionPhase,
     restTimer,
@@ -64,37 +70,81 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
 
   if (mode === "free") {
     const completedCount = Object.values(exerciseStates).filter((s) => s.completed).length
-    const total = freeExercises.length
+    const totalCount = freeExercises.length
 
     return (
-      <div className="space-y-4">
-        {total > 0 && (
-          <SessionProgressCard
-            completedCount={completedCount}
-            totalCount={total}
-            label="Sesión libre"
-          />
-        )}
+      <div className="space-y-6">
+        {/* View Toggle & Progress */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 self-center">
+            <Button
+              variant={viewMode === "list" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className="h-8 gap-2 rounded-lg text-xs font-medium"
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+              Lista
+            </Button>
+            <Button
+              variant={viewMode === "focus" ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("focus")}
+              className="h-8 gap-2 rounded-lg text-xs font-medium"
+            >
+              <Focus className="h-3.5 w-3.5" />
+              Enfoque
+            </Button>
+          </div>
+
+          {viewMode === "focus" && totalCount > 0 && (
+            <FocusProgressBar current={completedCount} total={totalCount} className="px-1" />
+          )}
+        </div>
 
         {restTimer.visible && (
           <RestTimer seconds={restTimer.seconds} onDismiss={dismissRestTimer} />
         )}
 
-        {freeExercises.length > 0 && (
-          <div className="space-y-3">
-            {freeExercises.map((re) => (
-              <ExerciseSessionCard
-                key={re.id}
-                routineExercise={re}
-                state={exerciseStates[re.id]}
-                onSetReps={(setIdx, reps) => handleSetReps(re.id, setIdx, reps)}
-                onRpe={(rpe) => updateExercise(re.id, { rpeActual: rpe })}
-                onPain={(pain) => updateExercise(re.id, { painDuring: pain })}
-                onNotes={(notes) => updateExercise(re.id, { notes })}
-                onComplete={() => handleCompleteExercise(re.id, re, undefined)}
+        {viewMode === "list" ? (
+          <div className="space-y-4">
+            {totalCount > 0 && (
+              <SessionProgressCard
+                completedCount={completedCount}
+                totalCount={totalCount}
+                label="Sesión libre"
               />
-            ))}
+            )}
+
+            {freeExercises.length > 0 && (
+              <div className="space-y-3">
+                {freeExercises.map((re) => (
+                  <ExerciseSessionCard
+                    key={re.id}
+                    routineExercise={re}
+                    state={exerciseStates[re.id]}
+                    onSetReps={(setIdx, reps) => handleSetReps(re.id, setIdx, reps)}
+                    onRpe={(rpe) => updateExercise(re.id, { rpeActual: rpe })}
+                    onPain={(pain) => updateExercise(re.id, { painDuring: pain })}
+                    onNotes={(notes) => updateExercise(re.id, { notes })}
+                    onComplete={() => handleCompleteExercise(re.id, re, undefined)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
+        ) : (
+          <SessionFocusView
+            exercises={freeExercises}
+            exerciseStates={exerciseStates}
+            currentExerciseIndex={currentExerciseIndex}
+            onSetExerciseIndex={setCurrentExerciseIndex}
+            onSetReps={handleSetReps}
+            onRpe={(reId, rpe) => updateExercise(reId, { rpeActual: rpe })}
+            onPain={(reId, pain) => updateExercise(reId, { painDuring: pain })}
+            onNotes={(reId, notes) => updateExercise(reId, { notes })}
+            onComplete={(reId, re) => handleCompleteExercise(reId, re, undefined)}
+          />
         )}
 
         <div>
@@ -179,26 +229,70 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
   const totalCount = routine.exercises.length
 
   return (
-    <div className="space-y-4">
-      <SessionProgressCard
-        completedCount={completedCount}
-        totalCount={totalCount}
-        onStartFree={startFreeSession}
-      />
+    <div className="space-y-6">
+      {/* View Toggle & Progress */}
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 self-center">
+          <Button
+            variant={viewMode === "list" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("list")}
+            className="h-8 gap-2 rounded-lg text-xs font-medium"
+          >
+            <LayoutList className="h-3.5 w-3.5" />
+            Lista
+          </Button>
+          <Button
+            variant={viewMode === "focus" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("focus")}
+            className="h-8 gap-2 rounded-lg text-xs font-medium"
+          >
+            <Focus className="h-3.5 w-3.5" />
+            Enfoque
+          </Button>
+        </div>
+
+        {viewMode === "focus" && (
+          <FocusProgressBar current={completedCount} total={totalCount} className="px-1" />
+        )}
+      </div>
 
       {restTimer.visible && (
         <RestTimer seconds={restTimer.seconds} onDismiss={dismissRestTimer} />
       )}
 
-      <SessionExerciseList
-        routine={routine}
-        exerciseStates={exerciseStates}
-        onSetReps={handleSetReps}
-        onRpe={(reId, rpe) => updateExercise(reId, { rpeActual: rpe })}
-        onPain={(reId, pain) => updateExercise(reId, { painDuring: pain })}
-        onNotes={(reId, notes) => updateExercise(reId, { notes })}
-        onComplete={(reId, re) => handleCompleteExercise(reId, re, routine.id)}
-      />
+      {viewMode === "list" ? (
+        <div className="space-y-4">
+          <SessionProgressCard
+            completedCount={completedCount}
+            totalCount={totalCount}
+            onStartFree={startFreeSession}
+          />
+
+          <SessionExerciseList
+            routine={routine}
+            exerciseStates={exerciseStates}
+            onSetReps={handleSetReps}
+            onRpe={(reId, rpe) => updateExercise(reId, { rpeActual: rpe })}
+            onPain={(reId, pain) => updateExercise(reId, { painDuring: pain })}
+            onNotes={(reId, notes) => updateExercise(reId, { notes })}
+            onComplete={(reId, re) => handleCompleteExercise(reId, re, routine.id)}
+          />
+        </div>
+      ) : (
+        <SessionFocusView
+          exercises={routine.exercises}
+          exerciseStates={exerciseStates}
+          currentExerciseIndex={currentExerciseIndex}
+          onSetExerciseIndex={setCurrentExerciseIndex}
+          onSetReps={handleSetReps}
+          onRpe={(reId, rpe) => updateExercise(reId, { rpeActual: rpe })}
+          onPain={(reId, pain) => updateExercise(reId, { painDuring: pain })}
+          onNotes={(reId, notes) => updateExercise(reId, { notes })}
+          onComplete={(reId, re) => handleCompleteExercise(reId, re, routine.id)}
+        />
+      )}
 
       <div className="pt-2 pb-6">
         {completedCount === totalCount ? (
