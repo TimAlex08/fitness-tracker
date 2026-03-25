@@ -1,13 +1,49 @@
 /**
  * Utilidades puras de training — sin imports de Prisma.
- * Seguro para usar en Client Components.
+ * Seguro para usar en Client Components y Server Components.
  */
 
-import type { YearDay, HeatmapCell, HeatmapWeek } from "@/types/training"
+import type { YearDay, HeatmapCell, HeatmapWeek, DayStatus } from "@/features/training/types/training.types"
 
 /** JS getDay() (0=Dom) → índice europeo (0=Lun, 6=Dom) */
 function jsDayToWeekIndex(jsDay: number): number {
   return jsDay === 0 ? 6 : jsDay - 1
+}
+
+/**
+ * Calcula racha actual y máxima.
+ * Un día "bueno" es COMPLETED o isRest.
+ * SKIPPED rompe la racha. PENDING no la afecta.
+ */
+export function calculateStreak(
+  days: { date: string; status: DayStatus; isRest: boolean }[]
+): { current: number; max: number } {
+  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date))
+  const todayStr = new Date().toISOString().split("T")[0]
+
+  let maxStreak = 0
+  let run = 0
+  for (const day of sorted) {
+    if (day.date > todayStr) break
+    if (day.status === "COMPLETED" || day.isRest) {
+      run++
+      maxStreak = Math.max(maxStreak, run)
+    } else if (day.status === "SKIPPED") {
+      run = 0
+    }
+  }
+
+  const pastDays = sorted.filter((d) => d.date <= todayStr).reverse()
+  let currentStreak = 0
+  for (const day of pastDays) {
+    if (day.status === "COMPLETED" || day.isRest) {
+      currentStreak++
+    } else if (day.status === "SKIPPED") {
+      break
+    }
+  }
+
+  return { current: currentStreak, max: maxStreak }
 }
 
 /**

@@ -4,15 +4,18 @@
  * Delega toda la interactividad a TodaySession (Client Component).
  */
 
-import { getTodayData } from "@/lib/daily-log"
-import { getAllExercises } from "@/lib/exercises"
-import { TodaySession } from "@/components/today/today-session"
 import { CalendarDays } from "lucide-react"
+import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
+import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
+import { TodaySession } from "@/features/session/components/today-session"
+
+const sessionRepo = new PrismaSessionRepository()
+const exerciseRepo = new PrismaExerciseRepository()
 
 export default async function TodayPage() {
   const [{ routine, dailyLog }, allExercises] = await Promise.all([
-    getTodayData(),
-    getAllExercises(),
+    sessionRepo.getTodayData(),
+    exerciseRepo.findAll(),
   ])
 
   const today = new Date().toLocaleDateString("es-MX", {

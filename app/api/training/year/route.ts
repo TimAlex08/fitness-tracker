@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
-import { getYearData } from "@/lib/training"
+import { PrismaTrainingRepository } from "@/features/training/api/prisma-training-repository"
+
+const repo = new PrismaTrainingRepository()
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -11,6 +13,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Invalid year" }, { status: 400 })
   }
 
-  const data = await getYearData(year)
+  const data = await repo.getYearData(year)
   return NextResponse.json(data)
 }

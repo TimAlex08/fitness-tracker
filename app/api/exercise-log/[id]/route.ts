@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/src/lib/prisma"
+import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
+import { updateExerciseLogSchema } from "@/features/session/schemas/session.schema"
+
+const repo = new PrismaSessionRepository()
 
 export async function PUT(
   request: NextRequest,
@@ -8,30 +11,16 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const {
-      completed,
-      setsCompleted,
-      repsPerSet,
-      durationSec,
-      rpeActual,
-      painDuring,
-      notes,
-    } = body
+    const parsed = updateExerciseLogSchema.safeParse(body)
 
-    const updated = await prisma.exerciseLog.update({
-      where: { id },
-      data: {
-        completed: completed ?? true,
-        setsCompleted: setsCompleted ?? undefined,
-        repsPerSet: Array.isArray(repsPerSet)
-          ? JSON.stringify(repsPerSet)
-          : undefined,
-        durationSec: durationSec ?? undefined,
-        rpeActual: rpeActual ?? undefined,
-        painDuring: painDuring ?? undefined,
-        notes: notes ?? undefined,
-      },
-    })
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: parsed.error.flatten() },
+        { status: 400 }
+      )
+    }
+
+    const updated = await repo.updateExerciseLog(id, parsed.data)
     return NextResponse.json(updated)
   } catch (error) {
     console.error("[PUT /api/exercise-log/[id]]", error)

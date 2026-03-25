@@ -1,55 +1,23 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/src/lib/prisma"
+import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
+import { upsertExerciseLogSchema } from "@/features/session/schemas/session.schema"
+
+const repo = new PrismaSessionRepository()
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const {
-      dailyLogId,
-      exerciseId,
-      setsCompleted,
-      repsPerSet,
-      durationSec,
-      rpeActual,
-      painDuring,
-      notes,
-    } = body
+    const parsed = upsertExerciseLogSchema.safeParse(body)
 
-    if (!dailyLogId || !exerciseId) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "dailyLogId and exerciseId son requeridos" },
+        { error: parsed.error.flatten() },
         { status: 400 }
       )
     }
 
-    const existing = await prisma.exerciseLog.findFirst({
-      where: { dailyLogId, exerciseId },
-    })
-
-    const data = {
-      completed: true,
-      setsCompleted: setsCompleted ?? undefined,
-      repsPerSet: Array.isArray(repsPerSet)
-        ? JSON.stringify(repsPerSet)
-        : undefined,
-      durationSec: durationSec ?? undefined,
-      rpeActual: rpeActual ?? undefined,
-      painDuring: painDuring ?? undefined,
-      notes: notes ?? undefined,
-    }
-
-    if (existing) {
-      const updated = await prisma.exerciseLog.update({
-        where: { id: existing.id },
-        data,
-      })
-      return NextResponse.json(updated)
-    }
-
-    const created = await prisma.exerciseLog.create({
-      data: { dailyLogId, exerciseId, ...data },
-    })
-    return NextResponse.json(created, { status: 201 })
+    const result = await repo.upsertExerciseLog(parsed.data)
+    return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error("[POST /api/exercise-log]", error)
     return NextResponse.json(

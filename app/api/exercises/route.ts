@@ -1,21 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/src/lib/prisma"
-import type { MuscleGroup, MovementType, ExerciseCategory, JointStress } from "@prisma/client"
+import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
+import { createExerciseSchema } from "@/features/exercises/schemas/exercise.schema"
+import type { MuscleGroup } from "@prisma/client"
+
+const repo = new PrismaExerciseRepository()
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const muscleGroup = searchParams.get("muscleGroup") as MuscleGroup | null
-    const search = searchParams.get("q")
+    const search = searchParams.get("q") ?? undefined
 
-    const exercises = await prisma.exercise.findMany({
-      where: {
-        ...(muscleGroup && { muscleGroup }),
-        ...(search && {
-          name: { contains: search, mode: "insensitive" },
-        }),
-      },
-      orderBy: [{ muscleGroup: "asc" }, { name: "asc" }],
+    const exercises = await repo.findAll({
+      muscleGroup: muscleGroup ?? undefined,
+      search,
     })
 
     return NextResponse.json(exercises)
@@ -28,48 +26,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const {
-      name, slug, description, imageUrl, videoUrl,
-      muscleGroup, movementType, category, difficulty,
-      parentId, defaultSets, defaultReps, defaultDurationSec,
-      defaultRestSec, defaultTempo, defaultRpe,
-      jointStress, targetJoints, contraindications, safetyNotes,
-      bodyweightPercent,
-    } = body
+    const parsed = createExerciseSchema.safeParse(body)
 
-    if (!name || !muscleGroup || !movementType || !category) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "name, muscleGroup, movementType y category son requeridos" },
+        { error: parsed.error.flatten() },
         { status: 400 }
       )
     }
 
-    const exercise = await prisma.exercise.create({
-      data: {
-        name,
-        slug: slug || generateSlug(name),
-        description: description || null,
-        imageUrl: imageUrl || null,
-        videoUrl: videoUrl || null,
-        muscleGroup: muscleGroup as MuscleGroup,
-        movementType: movementType as MovementType,
-        category: category as ExerciseCategory,
-        difficulty: difficulty ?? 1,
-        parentId: parentId || null,
-        defaultSets: defaultSets ?? null,
-        defaultReps: defaultReps ?? null,
-        defaultDurationSec: defaultDurationSec ?? null,
-        defaultRestSec: defaultRestSec ?? 60,
-        defaultTempo: defaultTempo || null,
-        defaultRpe: defaultRpe ?? null,
-        jointStress: (jointStress as JointStress) ?? "LOW",
-        targetJoints: targetJoints || null,
-        contraindications: contraindications || null,
-        safetyNotes: safetyNotes || null,
-        bodyweightPercent: bodyweightPercent ?? null,
-      },
-    })
-
+    const exercise = await repo.create(parsed.data)
     return NextResponse.json(exercise, { status: 201 })
   } catch (error: unknown) {
     console.error("[POST /api/exercises]", error)
@@ -86,13 +52,4 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ error: "Error creando ejercicio" }, { status: 500 })
   }
-}
-
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
 }

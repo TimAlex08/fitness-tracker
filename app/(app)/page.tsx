@@ -5,7 +5,9 @@
  */
 
 import { Dumbbell, Flame, CalendarDays } from "lucide-react"
-import { getExerciseCount } from "@/lib/exercises"
+import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
+
+const exerciseRepo = new PrismaExerciseRepository()
 
 // ─── Componente de tarjeta de métrica ────────────────────────────────────────
 
@@ -35,7 +37,7 @@ function StatCard({ label, value, description, icon, accent = "text-zinc-400" }:
 // ─── Página ───────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
-  const exerciseCount = await getExerciseCount()
+  const exerciseCount = await exerciseRepo.count()
 
   // Fecha formateada en español
   const today = new Date().toLocaleDateString("es-MX", {

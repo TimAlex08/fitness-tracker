@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server"
-import { getTodayData } from "@/lib/daily-log"
+import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
+
+const repo = new PrismaSessionRepository()
 
 export async function GET() {
   try {
-    const data = await getTodayData()
+    const data = await repo.getTodayData()
     return NextResponse.json(data)
   } catch (error) {
     console.error("[GET /api/daily-log/today]", error)

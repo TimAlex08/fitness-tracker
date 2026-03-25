@@ -5,11 +5,13 @@
 
 import Link from "next/link"
 import { Suspense } from "react"
-import { ExerciseCard } from "@/components/exercises/exercise-card"
-import { ExerciseFilters } from "@/components/exercises/exercise-filters"
-import { ExerciseActions } from "@/components/exercises/exercise-actions"
-import { getExercises, getAllExercises } from "@/lib/exercises"
-import type { MuscleGroup } from "@/types/exercise"
+import { ExerciseCard } from "@/features/exercises/components/exercise-card"
+import { ExerciseFilters } from "@/features/exercises/components/exercise-filters"
+import { ExerciseActions } from "@/features/exercises/components/exercise-actions"
+import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
+import type { MuscleGroup } from "@/features/exercises/types/exercise.types"
+
+const exerciseRepo = new PrismaExerciseRepository()
 
 // ─── Grid de ejercicios ───────────────────────────────────────────────────────
 
@@ -19,7 +21,7 @@ type ExerciseGridProps = {
 }
 
 async function ExerciseGrid({ muscleGroup, search }: ExerciseGridProps) {
-  const exercises = await getExercises(muscleGroup, search)
+  const exercises = await exerciseRepo.findMany({ muscleGroup, search })
 
   if (exercises.length === 0) {
     return (
@@ -66,7 +68,7 @@ export default async function ExercisesPage({ searchParams }: PageProps) {
       ? (muscle as MuscleGroup)
       : undefined
 
-  const allExercises = await getAllExercises()
+  const allExercises = await exerciseRepo.findAll()
 
   return (
     <div className="px-6 py-8">

@@ -9,9 +9,11 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { ExerciseDetailActions } from "@/components/exercises/exercise-detail-actions"
-import { getExerciseWithDetails, getAllExercises } from "@/lib/exercises"
+import { ExerciseDetailActions } from "@/features/exercises/components/exercise-detail-actions"
+import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
 import type { Exercise } from "@/types"
+
+const exerciseRepo = new PrismaExerciseRepository()
 
 // ─── Mapas de presentación ────────────────────────────────────────────────────
 
@@ -88,8 +90,8 @@ type PageProps = {
 export default async function ExerciseDetailPage({ params }: PageProps) {
   const { id } = await params
   const [exercise, allExercises] = await Promise.all([
-    getExerciseWithDetails(id),
-    getAllExercises(),
+    exerciseRepo.findById(id),
+    exerciseRepo.findAll(),
   ])
 
   if (!exercise) notFound()
