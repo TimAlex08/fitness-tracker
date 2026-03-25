@@ -12,15 +12,12 @@ import { WeekView } from "./week-view"
 import { MonthView } from "./month-view"
 import { YearView } from "./year-view"
 import { WeeklyStrip } from "./weekly-strip"
+import { Plus, LayoutList, Calendar, History, Focus } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 import type { WeekData, MonthData, YearData, DayStatus } from "@/features/training/types/training.types"
 
 type View = "week" | "month" | "year"
-
-const VIEW_LABELS: { id: View; label: string }[] = [
-  { id: "week", label: "Semana" },
-  { id: "month", label: "Mes" },
-  { id: "year", label: "Año" },
-]
 
 interface TrainingDashboardProps {
   weekData: WeekData
@@ -76,21 +73,43 @@ export function TrainingDashboard({ weekData }: TrainingDashboardProps) {
           </p>
         </div>
 
-        <div className="flex gap-1 bg-zinc-800 rounded-lg p-1">
-          {VIEW_LABELS.map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => switchView(id)}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
-                view === id
-                  ? "bg-zinc-600 text-white"
-                  : "text-zinc-400 hover:text-zinc-200"
-              )}
-            >
-              {label}
-            </button>
-          ))}
+        <Link href="/training/program/new">
+          <Button variant="outline" size="sm" className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:text-emerald-300 gap-2 h-9 rounded-xl">
+            <Plus className="h-4 w-4" />
+            <span className="hidden xs:inline">Nuevo Programa</span>
+          </Button>
+        </Link>
+      </div>
+
+      <div className="flex items-center justify-between px-1">
+        <div className="flex gap-1 bg-zinc-900/50 p-1 rounded-xl border border-zinc-800 self-center">
+          <Button
+            variant={view === "week" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => switchView("week")}
+            className="h-8 gap-2 rounded-lg text-xs font-medium"
+          >
+            <LayoutList className="h-3.5 w-3.5" />
+            Semana
+          </Button>
+          <Button
+            variant={view === "month" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => switchView("month")}
+            className="h-8 gap-2 rounded-lg text-xs font-medium"
+          >
+            <Calendar className="h-3.5 w-3.5" />
+            Mes
+          </Button>
+          <Button
+            variant={view === "year" ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => switchView("year")}
+            className="h-8 gap-2 rounded-lg text-xs font-medium"
+          >
+            <History className="h-3.5 w-3.5" />
+            Año
+          </Button>
         </div>
       </div>
 
