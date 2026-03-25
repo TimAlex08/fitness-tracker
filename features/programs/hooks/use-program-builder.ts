@@ -39,13 +39,9 @@ export function useProgramBuilder() {
     }
     return INITIAL_DATA
   })
-  const [isReady, setIsReady] = useState(false)
+  const [isReady, setIsReady] = useState(true)
 
   // ── Persistence ─────────────────────────────────────────────────────────────
-
-  useEffect(() => {
-    setIsReady(true)
-  }, [])
 
   useEffect(() => {
     if (isReady) {

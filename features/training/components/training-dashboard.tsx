@@ -7,12 +7,11 @@
  */
 
 import { useState } from "react"
-import { cn } from "@/lib/utils"
 import { WeekView } from "./week-view"
 import { MonthView } from "./month-view"
 import { YearView } from "./year-view"
 import { WeeklyStrip } from "./weekly-strip"
-import { Plus, LayoutList, Calendar, History, Focus } from "lucide-react"
+import { Plus, LayoutList, Calendar, History } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import type { WeekData, MonthData, YearData, DayStatus } from "@/features/training/types/training.types"

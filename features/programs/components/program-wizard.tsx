@@ -4,12 +4,14 @@ import * as React from "react"
 import { useProgramBuilder } from "../hooks/use-program-builder"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { ChevronLeft, ChevronRight, X, RotateCcw } from "lucide-react"
+import { ChevronLeft, ChevronRight, X, RotateCcw, Loader2 } from "lucide-react"
 import { ProgramInfoStep } from "./steps/program-info-step"
 import { StructureStep } from "./steps/structure-step"
 import { ExercisesStep } from "./steps/exercises-step"
+import { SummaryStep } from "./steps/summary-step"
 import { cn } from "@/lib/utils"
 import type { Exercise } from "@/types"
+import { useRouter } from "next/navigation"
 
 const STEP_LABELS = [
   "Información Básica",
@@ -19,6 +21,7 @@ const STEP_LABELS = [
 ]
 
 export function ProgramWizard() {
+  const router = useRouter()
   const {
     step,
     nextStep,
@@ -31,6 +34,8 @@ export function ProgramWizard() {
   } = useProgramBuilder()
 
   const [allExercises, setAllExercises] = React.useState<Exercise[]>([])
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     fetch("/api/exercises")
@@ -41,6 +46,32 @@ export function ProgramWizard() {
   if (!isReady) return <div className="p-8 text-center text-zinc-500">Iniciando asistente...</div>
 
   const progress = (step / 4) * 100
+
+  // ── Actions ─────────────────────────────────────────────────────────────────
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/programs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+
+      if (!res.ok) {
+        const errData = await res.json()
+        throw new Error(errData.error || "Error al guardar el programa")
+      }
+
+      resetBuilder()
+      router.push("/training")
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Ocurrió un error inesperado")
+      setIsSubmitting(false)
+    }
+  }
 
   // ── Validation ─────────────────────────────────────────────────────────────
 
@@ -101,9 +132,12 @@ export function ProgramWizard() {
           )}
 
           {step === 4 && (
-            <div className="p-12 text-center text-zinc-500 border border-dashed border-zinc-800 rounded-3xl">
-              Resumen Final (Próximamente)
-            </div>
+            <SummaryStep
+              data={data}
+              allExercises={allExercises}
+              isSubmitting={isSubmitting}
+              error={error}
+            />
           )}
         </div>
       </main>
@@ -114,18 +148,25 @@ export function ProgramWizard() {
           <Button
             variant="outline"
             onClick={prevStep}
+            disabled={isSubmitting}
             className={cn("flex-1 bg-zinc-900 border-zinc-800 text-zinc-400 h-12 rounded-xl", step === 1 && "invisible")}
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Atrás
           </Button>
           <Button
-            onClick={nextStep}
-            disabled={!canAdvance()}
+            onClick={step === 4 ? handleSubmit : nextStep}
+            disabled={!canAdvance() || isSubmitting}
             className="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-12 rounded-xl uppercase tracking-widest disabled:opacity-50 disabled:grayscale"
           >
-            {step === 4 ? "Finalizar y Guardar" : "Siguiente Paso"}
-            {step < 4 && <ChevronRight className="h-4 w-4 ml-2" />}
+            {isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin mr-2" />
+            ) : step === 4 ? (
+              "Finalizar y Activar"
+            ) : (
+              "Siguiente Paso"
+            )}
+            {step < 4 && !isSubmitting && <ChevronRight className="h-4 w-4 ml-2" />}
           </Button>
         </div>
       </footer>
