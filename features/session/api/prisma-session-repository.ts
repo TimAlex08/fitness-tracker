@@ -22,11 +22,11 @@ function getTodayRange() {
 }
 
 export class PrismaSessionRepository implements SessionRepository {
-  async getTodayRoutine(): Promise<RoutineWithExercises | null> {
+  async getTodayRoutine(userId: string): Promise<RoutineWithExercises | null> {
     const todayName = getTodayName()
 
     const program = await prisma.program.findFirst({
-      where: { isActive: true },
+      where: { isActive: true, userId },
       include: {
         phases: {
           orderBy: { order: "asc" },
@@ -60,11 +60,11 @@ export class PrismaSessionRepository implements SessionRepository {
     )
   }
 
-  async getTodayLog(): Promise<DailyLogWithExercises | null> {
+  async getTodayLog(userId: string): Promise<DailyLogWithExercises | null> {
     const { start, end } = getTodayRange()
 
     return prisma.dailyLog.findFirst({
-      where: { date: { gte: start, lte: end } },
+      where: { userId, date: { gte: start, lte: end } },
       include: {
         routine: true,
         exerciseLogs: {
@@ -75,18 +75,18 @@ export class PrismaSessionRepository implements SessionRepository {
     })
   }
 
-  async getTodayData(): Promise<TodayResponse> {
+  async getTodayData(userId: string): Promise<TodayResponse> {
     const [routine, dailyLog] = await Promise.all([
-      this.getTodayRoutine(),
-      this.getTodayLog(),
+      this.getTodayRoutine(userId),
+      this.getTodayLog(userId),
     ])
     return { routine, dailyLog, isFreeDay: !routine }
   }
 
-  async upsertTodayLog(input: UpsertDailyLogInput): Promise<DailyLog> {
+  async upsertTodayLog(userId: string, input: UpsertDailyLogInput): Promise<DailyLog> {
     const { start, end } = getTodayRange()
     const existing = await prisma.dailyLog.findFirst({
-      where: { date: { gte: start, lte: end } },
+      where: { userId, date: { gte: start, lte: end } },
     })
 
     const data = {
@@ -120,7 +120,7 @@ export class PrismaSessionRepository implements SessionRepository {
 
     const date = new Date()
     date.setHours(0, 0, 0, 0)
-    return prisma.dailyLog.create({ data: { date, ...data } })
+    return prisma.dailyLog.create({ data: { userId, date, ...data } })
   }
 
   async upsertExerciseLog(input: UpsertExerciseLogInput): Promise<ExerciseLog> {

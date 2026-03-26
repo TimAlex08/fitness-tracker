@@ -1,6 +1,7 @@
 import "dotenv/config"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
+import bcrypt from "bcryptjs"
 import type {
   MuscleGroup,
   MovementType,
@@ -488,6 +489,24 @@ const variantLinks: VariantLink[] = [
 // ---------- Seed principal ---------- //
 
 async function main() {
+  // 0.- Crear admin por defecto
+  console.log("👤 Creando usuario admin...")
+  const existing = await prisma.user.findUnique({ where: { email: "admin@workout.app" } })
+  if (!existing) {
+    await prisma.user.create({
+      data: {
+        name: "Admin",
+        email: "admin@workout.app",
+        password: await bcrypt.hash("admin123", 12),
+        role: "admin",
+      },
+    })
+    console.log("   ✓ Admin creado: admin@workout.app / admin123")
+  } else {
+    console.log("   ✓ Admin ya existe")
+  }
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@workout.app" } })
+
   // 1.- Limpiar datos existentes (orden respeta relaciones)
   console.log("🗑️  Limpiando datos existentes...")
   await prisma.routineExercise.deleteMany()
@@ -527,6 +546,7 @@ async function main() {
   console.log("📋 Creando programa...")
   const program = await prisma.program.create({
     data: {
+      userId: admin.id,
       name: "Plan Táctico 0 a 100",
       description:
         "Programa de reacondicionamiento desde cero. Fase Cero: integridad estructural, movilidad y activación.",

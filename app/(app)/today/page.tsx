@@ -8,13 +8,15 @@ import { CalendarDays } from "lucide-react"
 import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
 import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
 import { TodaySession } from "@/features/session/components/today-session"
+import { getRequiredSession } from "@/lib/get-session"
 
 const sessionRepo = new PrismaSessionRepository()
 const exerciseRepo = new PrismaExerciseRepository()
 
 export default async function TodayPage() {
+  const user = await getRequiredSession()
   const [{ routine, dailyLog }, allExercises] = await Promise.all([
-    sessionRepo.getTodayData(),
+    sessionRepo.getTodayData(user.id),
     exerciseRepo.findAll(),
   ])
 

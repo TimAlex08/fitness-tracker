@@ -4,12 +4,12 @@ import type { CreateProgramBody } from "../schemas/program.schema"
 import type { ProgramRepository } from "./program-repository"
 
 export class PrismaProgramRepository implements ProgramRepository {
-  async create(data: CreateProgramBody): Promise<Program> {
+  async create(data: CreateProgramBody, userId: string): Promise<Program> {
     return prisma.$transaction(async (tx) => {
       // 1. Deactivate existing active programs if the new one is active
       if (data.isActive) {
         await tx.program.updateMany({
-          where: { isActive: true },
+          where: { isActive: true, userId },
           data: { isActive: false },
         })
       }
@@ -17,6 +17,7 @@ export class PrismaProgramRepository implements ProgramRepository {
       // 2. Create the new program with all its nested entities
       const program = await tx.program.create({
         data: {
+          userId,
           name: data.name,
           description: data.description,
           isActive: data.isActive,
@@ -73,15 +74,16 @@ export class PrismaProgramRepository implements ProgramRepository {
     })
   }
 
-  async findAll(): Promise<Program[]> {
+  async findAll(userId: string): Promise<Program[]> {
     return prisma.program.findMany({
+      where: { userId },
       orderBy: { createdAt: "desc" },
     })
   }
 
-  async findById(id: string): Promise<Program | null> {
+  async findById(id: string, userId: string): Promise<Program | null> {
     return prisma.program.findUnique({
-      where: { id },
+      where: { id, userId },
       include: {
         phases: {
           include: {

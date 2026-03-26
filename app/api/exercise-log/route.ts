@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
 import { upsertExerciseLogSchema } from "@/features/session/schemas/session.schema"
+import { getSession } from "@/lib/auth"
 
 const repo = new PrismaSessionRepository()
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await getSession()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const body = await request.json()
     const parsed = upsertExerciseLogSchema.safeParse(body)
 

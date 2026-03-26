@@ -7,17 +7,20 @@
 
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { getRequiredSession } from "@/lib/get-session"
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const user = await getRequiredSession()
+
   return (
     <div className="flex h-screen bg-zinc-950 overflow-hidden">
       {/* Sidebar — visible solo en desktop (lg+) */}
       <div className="hidden lg:flex lg:flex-col lg:shrink-0">
-        <Sidebar />
+        <Sidebar user={user} />
       </div>
 
       {/* Columna principal */}

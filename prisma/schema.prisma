@@ -6,6 +6,36 @@ datasource db {
   provider = "postgresql"
 }
 
+// ---------- Auth ---------- //
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions     Session[]
+  programs     Program[]
+  dailyLogs    DailyLog[]
+  measurements BodyMeasurement[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("session")
+}
+
 // ---------- Catálogo de Ejercicios ---------- //
 
 model Exercise {
@@ -59,6 +89,8 @@ model Exercise {
 
 model Program {
   id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
   description String?
   isActive    Boolean @default(true)
@@ -67,6 +99,8 @@ model Program {
   updatedAt DateTime @updatedAt
 
   phases Phase[]
+
+  @@index([userId])
 }
 
 model Phase {
@@ -132,6 +166,8 @@ model RoutineExercise {
 
 model DailyLog {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date      DateTime
   routineId String?
   routine   Routine? @relation(fields: [routineId], references: [id])
@@ -170,7 +206,8 @@ model DailyLog {
 
   exerciseLogs ExerciseLog[]
 
-  @@unique([date, routineId])
+  @@unique([userId, date, routineId])
+  @@index([userId])
   @@index([date])
   @@index([status])
 }
@@ -208,6 +245,8 @@ model ExerciseLog {
 
 model BodyMeasurement {
   id       String   @id @default(cuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   date     DateTime
   weight   Float?
   waistCm  Float?

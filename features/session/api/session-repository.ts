@@ -48,10 +48,10 @@ export type UpdateExerciseLogInput = {
 }
 
 export interface SessionRepository {
-  getTodayRoutine(): Promise<RoutineWithExercises | null>
-  getTodayLog(): Promise<DailyLogWithExercises | null>
-  getTodayData(): Promise<TodayResponse>
-  upsertTodayLog(data: UpsertDailyLogInput): Promise<DailyLog>
+  getTodayRoutine(userId: string): Promise<RoutineWithExercises | null>
+  getTodayLog(userId: string): Promise<DailyLogWithExercises | null>
+  getTodayData(userId: string): Promise<TodayResponse>
+  upsertTodayLog(userId: string, data: UpsertDailyLogInput): Promise<DailyLog>
   upsertExerciseLog(data: UpsertExerciseLogInput): Promise<ExerciseLog>
   updateExerciseLog(id: string, data: UpdateExerciseLogInput): Promise<ExerciseLog>
 }

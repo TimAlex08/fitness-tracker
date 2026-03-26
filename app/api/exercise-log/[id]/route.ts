@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
 import { updateExerciseLogSchema } from "@/features/session/schemas/session.schema"
+import { getSession } from "@/lib/auth"
 
 const repo = new PrismaSessionRepository()
 
@@ -9,6 +10,9 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getSession()
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
     const { id } = await params
     const body = await request.json()
     const parsed = updateExerciseLogSchema.safeParse(body)
