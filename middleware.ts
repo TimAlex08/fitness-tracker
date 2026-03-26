@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { SESSION_COOKIE } from "@/lib/auth"
+
+const SESSION_COOKIE = "session_token"
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
