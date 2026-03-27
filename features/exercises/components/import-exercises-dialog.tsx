@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Upload, FileText, AlertCircle, CheckCircle2, X } from "lucide-react"
+import { Upload, FileText, AlertCircle, CheckCircle2, X, Download } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 
@@ -38,6 +38,26 @@ function parseCSV(text: string): ImportRow[] {
   }
 
   return rows
+}
+
+// ─── Plantilla CSV ────────────────────────────────────────────────────────────
+
+const CSV_TEMPLATE = `name,muscleGroup,movementType,category,difficulty,defaultSets,defaultReps,defaultDurationSec,defaultRestSec,defaultTempo,defaultRpe,description,notes
+Sentadilla,LEGS,SQUAT,STANDARD,2,3,10,,90,2-1-2-0,7,Sentadilla con peso corporal,Mantén la espalda recta
+Flexiones,CHEST,PUSH,STANDARD,1,3,8,,60,2-1-2-0,6,Flexiones estándar,
+Peso muerto rumano,BACK,HINGE,STANDARD,3,3,8,,90,3-1-2-0,7,,
+Plancha,CORE,ISOMETRIC,STANDARD,1,3,,30,60,,6,,
+Movilidad de cadera,MOBILITY,MOBILITY,WARMUP,1,1,,60,30,,,,
+`
+
+function downloadTemplate() {
+  const blob = new Blob([CSV_TEMPLATE], { type: "text/csv;charset=utf-8;" })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = "plantilla-ejercicios.csv"
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 // ─── Columnas a mostrar en preview ────────────────────────────────────────────
@@ -175,9 +195,19 @@ export function ImportExercisesDialog({ open, onOpenChange }: ImportExercisesDia
 
               {/* Formato esperado */}
               <div className="space-y-3">
-                <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
-                  Formato CSV esperado
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-medium text-zinc-500 uppercase tracking-wide">
+                    Formato CSV esperado
+                  </p>
+                  <button
+                    type="button"
+                    onClick={downloadTemplate}
+                    className="inline-flex items-center gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Descargar plantilla
+                  </button>
+                </div>
                 <pre className="text-xs bg-zinc-900 rounded-lg p-3 text-zinc-400 overflow-x-auto leading-relaxed">
 {`name,muscleGroup,movementType,category,difficulty,defaultSets,defaultReps,defaultRestSec
 Sentadilla,LEGS,SQUAT,STANDARD,2,3,10,90
