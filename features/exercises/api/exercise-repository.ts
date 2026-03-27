@@ -1,9 +1,12 @@
 import type { Exercise, Prisma } from "@prisma/client"
 import type { ExerciseCardData } from "@/features/exercises/types/exercise.types"
 
+export type ExerciseSort = "name_asc" | "name_desc" | "date_desc" | "date_asc"
+
 export type ExerciseFilters = {
   muscleGroup?: string
   search?: string
+  sort?: ExerciseSort
 }
 
 export type CreateExerciseInput = {

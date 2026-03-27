@@ -10,18 +10,22 @@ import { ExerciseFilters } from "@/features/exercises/components/exercise-filter
 import { ExerciseActions } from "@/features/exercises/components/exercise-actions"
 import { PrismaExerciseRepository } from "@/features/exercises/api/prisma-exercise-repository"
 import type { MuscleGroup } from "@/features/exercises/types/exercise.types"
+import type { ExerciseSort } from "@/features/exercises/api/exercise-repository"
 
 const exerciseRepo = new PrismaExerciseRepository()
 
 // ─── Grid de ejercicios ───────────────────────────────────────────────────────
 
+const VALID_SORTS: ExerciseSort[] = ["name_asc", "name_desc", "date_desc", "date_asc"]
+
 type ExerciseGridProps = {
   muscleGroup?: MuscleGroup
   search?: string
+  sort?: ExerciseSort
 }
 
-async function ExerciseGrid({ muscleGroup, search }: ExerciseGridProps) {
-  const exercises = await exerciseRepo.findMany({ muscleGroup, search })
+async function ExerciseGrid({ muscleGroup, search, sort }: ExerciseGridProps) {
+  const exercises = await exerciseRepo.findMany({ muscleGroup, search, sort })
 
   if (exercises.length === 0) {
     return (
@@ -57,19 +61,25 @@ async function ExerciseGrid({ muscleGroup, search }: ExerciseGridProps) {
 
 // ─── Página ───────────────────────────────────────────────────────────────────
 
+const VALID_MUSCLE_GROUPS: MuscleGroup[] = [
+  "CHEST", "BACK", "LEGS", "SHOULDERS", "CORE", "MOBILITY", "FULL_BODY",
+]
+
 type PageProps = {
-  searchParams: Promise<{ muscle?: string; q?: string }>
+  searchParams: Promise<{ muscle?: string; q?: string; sort?: string }>
 }
 
 export default async function ExercisesPage({ searchParams }: PageProps) {
-  const { muscle, q } = await searchParams
+  const { muscle, q, sort } = await searchParams
 
-  const VALID_MUSCLE_GROUPS: MuscleGroup[] = [
-    "CHEST", "BACK", "LEGS", "SHOULDERS", "CORE", "MOBILITY", "FULL_BODY",
-  ]
   const activeMuscle =
     muscle && VALID_MUSCLE_GROUPS.includes(muscle as MuscleGroup)
       ? (muscle as MuscleGroup)
+      : undefined
+
+  const activeSort =
+    sort && VALID_SORTS.includes(sort as ExerciseSort)
+      ? (sort as ExerciseSort)
       : undefined
 
   const allExercises = await exerciseRepo.findAll()
@@ -104,7 +114,7 @@ export default async function ExercisesPage({ searchParams }: PageProps) {
           </div>
         }
       >
-        <ExerciseGrid muscleGroup={activeMuscle} search={q} />
+        <ExerciseGrid muscleGroup={activeMuscle} search={q} sort={activeSort} />
       </Suspense>
     </div>
   )

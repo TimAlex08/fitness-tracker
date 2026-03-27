@@ -47,6 +47,18 @@ function generateSlug(name: string): string {
 
 // ─── Cached read functions (module-level, shared across instances) ────────────
 
+type OrderByClause = { name: "asc" | "desc" } | { createdAt: "asc" | "desc" } | { muscleGroup: "asc" }
+
+function resolveOrderBy(sort?: ExerciseFilters["sort"]): OrderByClause[] {
+  switch (sort) {
+    case "name_desc": return [{ name: "desc" }]
+    case "date_desc": return [{ createdAt: "desc" }]
+    case "date_asc":  return [{ createdAt: "asc" }]
+    case "name_asc":
+    default:          return [{ muscleGroup: "asc" }, { name: "asc" }]
+  }
+}
+
 const cachedFindMany = unstable_cache(
   async (filters?: ExerciseFilters): Promise<ExerciseCardData[]> => {
     const exercises = await prisma.exercise.findMany({
@@ -55,7 +67,7 @@ const cachedFindMany = unstable_cache(
         ...(filters?.search && { name: { contains: filters.search, mode: "insensitive" } }),
       },
       select: EXERCISE_CARD_SELECT,
-      orderBy: [{ muscleGroup: "asc" }, { name: "asc" }],
+      orderBy: resolveOrderBy(filters?.sort),
     })
     return exercises as ExerciseCardData[]
   },
