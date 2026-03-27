@@ -5,7 +5,6 @@
  */
 
 import {
-  Dumbbell,
   Home,
   Activity,
   TrendingUp,
@@ -28,11 +27,6 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Dashboard",
     href: "/",
     icon: Home,
-  },
-  {
-    label: "Ejercicios",
-    href: "/exercises",
-    icon: Dumbbell,
   },
   {
     label: "Entrenamiento",

@@ -19,7 +19,7 @@ export function SidebarNavLinks() {
     <nav aria-label="Navegación principal">
       <ul className="space-y-1">
         {NAV_ITEMS.map((item) => {
-          const isActive = pathname === item.href
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
           const Icon = item.icon
 
           return (
