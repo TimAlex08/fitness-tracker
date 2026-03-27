@@ -6,7 +6,7 @@ import type { ProgramRepository } from "./program-repository"
 export class PrismaProgramRepository implements ProgramRepository {
   async create(data: CreateProgramBody, userId: string): Promise<Program> {
     return prisma.$transaction(async (tx) => {
-      // 1. Deactivate existing active programs if the new one is active
+      // 1. Desactivar programas activos si el nuevo será activo
       if (data.isActive) {
         await tx.program.updateMany({
           where: { isActive: true, userId },
@@ -14,7 +14,7 @@ export class PrismaProgramRepository implements ProgramRepository {
         })
       }
 
-      // 2. Create the new program with all its nested entities
+      // 2. Crear programa con fases y días asignados
       const program = await tx.program.create({
         data: {
           userId,
@@ -31,38 +31,39 @@ export class PrismaProgramRepository implements ProgramRepository {
               rpeTarget: phase.rpeTarget,
               tempoDefault: phase.tempoDefault,
               benchmarks: phase.benchmarks,
-              routines: {
-                create: phase.routines.map((routine) => ({
-                  name: routine.name,
-                  dayOfWeek: routine.dayOfWeek,
-                  sessionType: routine.sessionType,
-                  durationMin: routine.durationMin,
-                  description: routine.description,
-                  exercises: {
-                    create: routine.exercises.map((re) => ({
-                      exerciseId: re.exerciseId,
-                      order: re.order,
-                      block: re.block,
-                      sets: re.sets,
-                      reps: re.reps,
-                      durationSec: re.durationSec,
-                      restSec: re.restSec,
-                      tempo: re.tempo,
-                      rpe: re.rpe,
-                      notes: re.notes,
+              programDays: phase.programDays
+                ? {
+                    create: phase.programDays.map((pd) => ({
+                      routineId: pd.routineId,
+                      dayOfWeek: pd.dayOfWeek,
+                      weekNumber: pd.weekNumber ?? null,
+                      overrides: pd.overrides
+                        ? {
+                            create: pd.overrides.map((o) => ({
+                              exerciseId: o.exerciseId,
+                              sets: o.sets ?? null,
+                              reps: o.reps ?? null,
+                              durationSec: o.durationSec ?? null,
+                              restSec: o.restSec ?? null,
+                              tempo: o.tempo ?? null,
+                              rpe: o.rpe ?? null,
+                              notes: o.notes ?? null,
+                            })),
+                          }
+                        : undefined,
                     })),
-                  },
-                })),
-              },
+                  }
+                : undefined,
             })),
           },
         },
         include: {
           phases: {
             include: {
-              routines: {
+              programDays: {
                 include: {
-                  exercises: true,
+                  routine: true,
+                  overrides: true,
                 },
               },
             },
@@ -87,13 +88,17 @@ export class PrismaProgramRepository implements ProgramRepository {
       include: {
         phases: {
           include: {
-            routines: {
+            programDays: {
               include: {
-                exercises: {
+                routine: {
                   include: {
-                    exercise: true,
+                    exercises: {
+                      include: { exercise: true },
+                      orderBy: { order: "asc" },
+                    },
                   },
                 },
+                overrides: true,
               },
             },
           },

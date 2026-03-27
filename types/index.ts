@@ -4,6 +4,8 @@ import type {
   Phase,
   Routine,
   RoutineExercise,
+  ProgramDay,
+  ExerciseOverride,
   DailyLog,
   ExerciseLog,
   BodyMeasurement,
@@ -36,6 +38,8 @@ export type {
   Phase,
   Routine,
   RoutineExercise,
+  ProgramDay,
+  ExerciseOverride,
   DailyLog,
   ExerciseLog,
   BodyMeasurement,
@@ -62,14 +66,21 @@ export interface RoutineWithExercises extends Routine {
   exercises: RoutineExerciseWithDetails[]
 }
 
+// ---------- ProgramDay con rutina y overrides ---------- //
+
+export interface ProgramDayWithRoutine extends ProgramDay {
+  routine: RoutineWithExercises
+  overrides: ExerciseOverride[]
+}
+
 // ---------- Programa con jerarquía completa ---------- //
 
-export interface PhaseWithRoutines extends Phase {
-  routines: RoutineWithExercises[]
+export interface PhaseWithDays extends Phase {
+  programDays: ProgramDayWithRoutine[]
 }
 
 export interface ProgramWithPhases extends Program {
-  phases: PhaseWithRoutines[]
+  phases: PhaseWithDays[]
 }
 
 // ---------- DailyLog con ejercicios ---------- //

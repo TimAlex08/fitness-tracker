@@ -32,12 +32,18 @@ export class PrismaSessionRepository implements SessionRepository {
           orderBy: { order: "asc" },
           take: 1,
           include: {
-            routines: {
+            programDays: {
+              where: { dayOfWeek: todayName },
               include: {
-                exercises: {
-                  include: { exercise: true },
-                  orderBy: { order: "asc" },
+                routine: {
+                  include: {
+                    exercises: {
+                      include: { exercise: true },
+                      orderBy: { order: "asc" },
+                    },
+                  },
                 },
+                overrides: true,
               },
             },
           },
@@ -45,19 +51,31 @@ export class PrismaSessionRepository implements SessionRepository {
       },
     })
 
-    if (!program?.phases[0]) return null
+    if (!program?.phases[0]?.programDays[0]) return null
 
-    const routines = program.phases[0].routines
+    const programDay = program.phases[0].programDays[0]
+    const routine = programDay.routine
 
-    return (
-      routines.find((r) => {
-        if (!r.dayOfWeek || r.dayOfWeek === "daily") return false
-        return r.dayOfWeek
-          .split(",")
-          .map((d) => d.trim())
-          .includes(todayName)
-      }) ?? null
-    )
+    // Aplicar overrides sobre los parámetros base
+    if (programDay.overrides.length === 0) return routine
+
+    return {
+      ...routine,
+      exercises: routine.exercises.map((re) => {
+        const override = programDay.overrides.find((o) => o.exerciseId === re.exerciseId)
+        if (!override) return re
+        return {
+          ...re,
+          sets: override.sets ?? re.sets,
+          reps: override.reps ?? re.reps,
+          durationSec: override.durationSec ?? re.durationSec,
+          restSec: override.restSec ?? re.restSec,
+          tempo: override.tempo ?? re.tempo,
+          rpe: override.rpe ?? re.rpe,
+          notes: override.notes ?? re.notes,
+        }
+      }),
+    }
   }
 
   async getTodayLog(userId: string): Promise<DailyLogWithExercises | null> {

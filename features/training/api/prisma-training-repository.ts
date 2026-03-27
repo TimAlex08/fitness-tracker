@@ -45,7 +45,7 @@ function isLeapYear(year: number): boolean {
 interface RoutineEntry {
   id: string
   name: string
-  dayOfWeek: string | null
+  dayOfWeek: string
   sessionType: string
   durationMin: number | null
   exerciseCount: number
@@ -60,9 +60,13 @@ async function getActiveRoutines(): Promise<RoutineEntry[]> {
         orderBy: { order: "asc" },
         take: 1,
         include: {
-          routines: {
+          programDays: {
             include: {
-              _count: { select: { exercises: true } },
+              routine: {
+                include: {
+                  _count: { select: { exercises: true } },
+                },
+              },
             },
           },
         },
@@ -73,29 +77,20 @@ async function getActiveRoutines(): Promise<RoutineEntry[]> {
   if (!program?.phases[0]) return []
 
   const phase = program.phases[0]
-  return phase.routines.map((r) => ({
-    id: r.id,
-    name: r.name,
-    dayOfWeek: r.dayOfWeek,
-    sessionType: r.sessionType,
-    durationMin: r.durationMin,
-    exerciseCount: r._count.exercises,
+  return phase.programDays.map((pd) => ({
+    id: pd.routine.id,
+    name: pd.routine.name,
+    dayOfWeek: pd.dayOfWeek,
+    sessionType: pd.routine.sessionType,
+    durationMin: pd.routine.durationMin,
+    exerciseCount: pd.routine._count.exercises,
     rpeTarget: phase.rpeTarget,
   }))
 }
 
 function routineForDay(routines: RoutineEntry[], jsDay: number): RoutineEntry | null {
   const dayName = jsDayToName(jsDay)
-  return (
-    routines.find((r) => {
-      if (!r.dayOfWeek) return false
-      if (r.dayOfWeek === "daily") return true
-      return r.dayOfWeek
-        .split(",")
-        .map((d) => d.trim())
-        .includes(dayName)
-    }) ?? null
-  )
+  return routines.find((r) => r.dayOfWeek === dayName) ?? null
 }
 
 // ─── Implementación ───────────────────────────────────────────────────────────

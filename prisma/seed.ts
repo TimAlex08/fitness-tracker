@@ -509,6 +509,8 @@ async function main() {
 
   // 1.- Limpiar datos existentes (orden respeta relaciones)
   console.log("🗑️  Limpiando datos existentes...")
+  await prisma.exerciseOverride.deleteMany()
+  await prisma.programDay.deleteMany()
   await prisma.routineExercise.deleteMany()
   await prisma.exerciseLog.deleteMany()
   await prisma.dailyLog.deleteMany()
@@ -576,13 +578,12 @@ async function main() {
     },
   })
 
-  // 6.- Crear rutinas
+  // 6.- Crear rutinas (globales, vinculadas al usuario)
   console.log("📅 Creando rutinas...")
   const fullBodyA = await prisma.routine.create({
     data: {
-      phaseId: phase.id,
+      userId: admin.id,
       name: "Sesión Full Body A",
-      dayOfWeek: "monday,wednesday,friday",
       sessionType: "TRAINING" as SessionType,
       durationMin: 45,
       description:
@@ -592,9 +593,8 @@ async function main() {
 
   const movilidadDiaria = await prisma.routine.create({
     data: {
-      phaseId: phase.id,
+      userId: admin.id,
       name: "Movilidad Diaria",
-      dayOfWeek: "daily",
       sessionType: "MOBILITY" as SessionType,
       durationMin: 15,
       description:
@@ -654,6 +654,25 @@ async function main() {
   console.log(
     `   ✓ ${movilidadDiariaExercises.length} ejercicios en Movilidad Diaria`,
   )
+
+  // 9.- Asignar rutinas a días del programa
+  console.log("📆 Asignando rutinas a días de la fase...")
+
+  // Full Body A: lunes, miércoles, viernes
+  for (const day of ["monday", "wednesday", "friday"]) {
+    await prisma.programDay.create({
+      data: { phaseId: phase.id, routineId: fullBodyA.id, dayOfWeek: day },
+    })
+  }
+
+  // Movilidad Diaria: todos los días
+  for (const day of ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]) {
+    await prisma.programDay.create({
+      data: { phaseId: phase.id, routineId: movilidadDiaria.id, dayOfWeek: day },
+    })
+  }
+
+  console.log("   ✓ ProgramDays creados (Full Body A: L/M/V · Movilidad: todos los días)")
 
   console.log("\n✅ Seed completado exitosamente")
   console.log(`   Programa: ${program.name}`)

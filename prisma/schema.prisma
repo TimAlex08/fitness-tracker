@@ -21,6 +21,7 @@ model User {
   programs     Program[]
   dailyLogs    DailyLog[]
   measurements BodyMeasurement[]
+  routines     Routine[]
 
   @@map("user")
 }
@@ -77,66 +78,34 @@ model Exercise {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  routineExercises RoutineExercise[]
-  exerciseLogs     ExerciseLog[]
+  routineExercises  RoutineExercise[]
+  exerciseLogs      ExerciseLog[]
+  exerciseOverrides ExerciseOverride[]
 
   @@index([muscleGroup])
   @@index([category])
   @@index([parentId])
 }
 
-// ---------- Programa de Entrenamiento ---------- //
-
-model Program {
-  id          String  @id @default(cuid())
-  userId      String
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  isActive    Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  phases Phase[]
-
-  @@index([userId])
-}
-
-model Phase {
-  id          String  @id @default(cuid())
-  programId   String
-  program     Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  name        String
-  order       Int
-  weekStart   Int
-  weekEnd     Int
-  description String?
-  rpeTarget   String?
-  tempoDefault String?
-  benchmarks  String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  routines Routine[]
-}
+// ---------- Rutinas (globales por usuario) ---------- //
 
 model Routine {
   id          String      @id @default(cuid())
-  phaseId     String
-  phase       Phase       @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
-  dayOfWeek   String?
+  description String?
   sessionType SessionType
   durationMin Int?
-  description String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  exercises RoutineExercise[]
-  dailyLogs DailyLog[]
+  exercises   RoutineExercise[]
+  programDays ProgramDay[]
+  dailyLogs   DailyLog[]
+
+  @@index([userId])
 }
 
 model RoutineExercise {
@@ -158,8 +127,83 @@ model RoutineExercise {
 
   createdAt DateTime @default(now())
 
-  @@unique([routineId, exerciseId, order])
+  @@unique([routineId, order])
   @@index([routineId])
+}
+
+// ---------- Programa de Entrenamiento ---------- //
+
+model Program {
+  id          String  @id @default(cuid())
+  userId      String
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  phases Phase[]
+
+  @@index([userId])
+}
+
+model Phase {
+  id           String  @id @default(cuid())
+  programId    String
+  program      Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  name         String
+  order        Int
+  weekStart    Int
+  weekEnd      Int
+  description  String?
+  rpeTarget    String?
+  tempoDefault String?
+  benchmarks   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  programDays ProgramDay[]
+}
+
+// Asignación de rutina a un día de la semana dentro de una fase
+model ProgramDay {
+  id         String  @id @default(cuid())
+  phaseId    String
+  phase      Phase   @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+  routineId  String
+  routine    Routine @relation(fields: [routineId], references: [id])
+
+  dayOfWeek  String // "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+  weekNumber Int?   // null = aplica a todas las semanas de la fase
+
+  createdAt DateTime @default(now())
+
+  overrides ExerciseOverride[]
+
+  @@index([phaseId])
+  @@index([routineId])
+}
+
+// Parámetros que difieren del base para un ProgramDay específico
+model ExerciseOverride {
+  id           String     @id @default(cuid())
+  programDayId String
+  programDay   ProgramDay @relation(fields: [programDayId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise   @relation(fields: [exerciseId], references: [id])
+
+  sets        Int?
+  reps        Int?
+  durationSec Int?
+  restSec     Int?
+  tempo       String?
+  rpe         Int?
+  notes       String?
+
+  @@index([programDayId])
 }
 
 // ---------- Registro Diario ---------- //
