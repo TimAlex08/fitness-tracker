@@ -283,7 +283,7 @@ export function ExerciseForm({
       router.refresh()
 
       if (!isEditing) {
-        router.push(`/exercises/${data.id}`)
+        router.push(`/training/exercises/${data.id}`)
       }
     } catch {
       setError("Error de red. Inténtalo de nuevo.")

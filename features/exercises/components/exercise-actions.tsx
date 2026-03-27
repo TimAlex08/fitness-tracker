@@ -1,15 +1,10 @@
 "use client"
 
-/**
- * ExerciseActions — SRP:
- * Responsabilidad: botón "Nuevo ejercicio" + apertura del Sheet de creación.
- * Client component porque maneja el estado open del Sheet.
- */
-
 import { useState } from "react"
-import { Plus } from "lucide-react"
+import { Plus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ExerciseForm } from "@/features/exercises/components/exercise-form"
+import { ImportExercisesDialog } from "@/features/exercises/components/import-exercises-dialog"
 import type { Exercise } from "@/types"
 
 type ExerciseActionsProps = {
@@ -17,24 +12,41 @@ type ExerciseActionsProps = {
 }
 
 export function ExerciseActions({ allExercises }: ExerciseActionsProps) {
-  const [open, setOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
 
   return (
     <>
-      <Button
-        onClick={() => setOpen(true)}
-        className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5"
-        size="sm"
-      >
-        <Plus className="h-4 w-4" />
-        Nuevo ejercicio
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          onClick={() => setImportOpen(true)}
+          variant="outline"
+          size="sm"
+          className="border-zinc-700 text-zinc-400 hover:text-white gap-1.5"
+        >
+          <Upload className="h-4 w-4" />
+          Importar
+        </Button>
+        <Button
+          onClick={() => setCreateOpen(true)}
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-500 text-white gap-1.5"
+        >
+          <Plus className="h-4 w-4" />
+          Nuevo
+        </Button>
+      </div>
 
       <ExerciseForm
-        open={open}
-        onOpenChange={setOpen}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
         exercise={null}
         allExercises={allExercises}
+      />
+
+      <ImportExercisesDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
       />
     </>
   )
