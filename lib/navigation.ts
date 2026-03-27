@@ -37,6 +37,5 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Progreso",
     href: "/progress",
     icon: TrendingUp,
-    comingSoon: true,
   },
 ]
