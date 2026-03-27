@@ -18,17 +18,43 @@ type ImportResult = {
 
 type Stage = "idle" | "preview" | "importing" | "done"
 
-// ─── CSV Parser simple ────────────────────────────────────────────────────────
+// ─── CSV Parser (soporta campos con comas y \r\n de Windows) ─────────────────
+
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = []
+  let current = ""
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i]
+    if (ch === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"'
+        i++
+      } else {
+        inQuotes = !inQuotes
+      }
+    } else if (ch === "," && !inQuotes) {
+      fields.push(current.trim())
+      current = ""
+    } else {
+      current += ch
+    }
+  }
+  fields.push(current.trim())
+  return fields
+}
 
 function parseCSV(text: string): ImportRow[] {
-  const lines = text.trim().split("\n").filter(Boolean)
+  // Normalizar saltos de línea de Windows (\r\n) y Mac (\r)
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim().split("\n").filter(Boolean)
   if (lines.length < 2) return []
 
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"|"$/g, ""))
+  const headers = parseCSVLine(lines[0])
   const rows: ImportRow[] = []
 
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(",").map((v) => v.trim().replace(/^"|"$/g, ""))
+    const values = parseCSVLine(lines[i])
     const row: ImportRow = {}
     headers.forEach((header, idx) => {
       const val = values[idx] ?? ""
@@ -130,7 +156,19 @@ export function ImportExercisesDialog({ open, onOpenChange }: ImportExercisesDia
       const data = await res.json()
 
       if (!res.ok) {
-        setParseError(data.error?.message ?? "Error al importar.")
+        // data.error puede ser un objeto flatten de Zod o un string
+        const errorMsg =
+          typeof data.error === "string"
+            ? data.error
+            : data.error?.formErrors?.length
+              ? data.error.formErrors.join(", ")
+              : data.error?.fieldErrors
+                ? Object.entries(data.error.fieldErrors as Record<string, string[]>)
+                    .map(([field, msgs]) => `${field}: ${msgs.join(", ")}`)
+                    .slice(0, 3)
+                    .join(" · ")
+                : "Error al importar. Revisa que los valores de muscleGroup, movementType y category sean válidos (mayúsculas)."
+        setParseError(errorMsg)
         setStage("preview")
         return
       }
