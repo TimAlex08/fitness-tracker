@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { X } from "lucide-react"
+import { X, GripVertical } from "lucide-react"
 import { SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -31,7 +31,6 @@ export interface RoutineOption {
   durationMin: number | null
 }
 
-// All current days for the phase (used to rebuild the full list on save)
 export interface PhaseDay {
   routineId: string
   dayOfWeek: string
@@ -41,7 +40,7 @@ type Props = {
   programId: string
   phaseId: string
   dayOfWeek: string
-  allPhaseDays: PhaseDay[]  // all days for this phase
+  allPhaseDays: PhaseDay[]
   routines: RoutineOption[]
   onClose: () => void
   onSaved: () => void
@@ -57,10 +56,15 @@ export function DayDrawer({
   onSaved,
 }: Props) {
   const router = useRouter()
-  const [search, setSearch] = useState("")
+  // selectedIds preserva el orden definido por el usuario
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [search, setSearch] = useState("")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Drag state para la lista ordenada
+  const dragIdx = useRef<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
 
   useEffect(() => {
     const current = allPhaseDays
@@ -70,6 +74,11 @@ export function DayDrawer({
     setSearch("")
     setError(null)
   }, [dayOfWeek, allPhaseDays])
+
+  // selectedRoutines respeta el orden de selectedIds
+  const selectedRoutines = selectedIds
+    .map((id) => routines.find((r) => r.id === id))
+    .filter((r): r is RoutineOption => r !== undefined)
 
   const filtered = routines.filter((r) =>
     r.name.toLowerCase().includes(search.toLowerCase())
@@ -81,12 +90,45 @@ export function DayDrawer({
     )
   }
 
+  // ── Drag & drop ────────────────────────────────────────────────────────────
+
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    if (dragIdx.current !== null && dragIdx.current !== idx) {
+      setDragOverIdx(idx)
+    }
+  }
+
+  function handleDrop(toIdx: number) {
+    const fromIdx = dragIdx.current
+    if (fromIdx === null || fromIdx === toIdx) return
+    setSelectedIds((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, moved)
+      return next
+    })
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
+  function handleDragEnd() {
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
+  // ── Guardar ────────────────────────────────────────────────────────────────
+
   async function handleSave() {
     setSaving(true)
     setError(null)
     try {
-      // Keep all other days, replace entries for this dayOfWeek
       const otherDays = allPhaseDays.filter((d) => d.dayOfWeek !== dayOfWeek)
+      // Preservar el orden de selectedIds al construir los días
       const updatedDays = selectedIds.map((routineId) => ({ routineId, dayOfWeek }))
       const allDays = [...otherDays, ...updatedDays]
 
@@ -112,8 +154,6 @@ export function DayDrawer({
     }
   }
 
-  const selectedRoutines = routines.filter((r) => selectedIds.includes(r.id))
-
   return (
     <div className="flex flex-col h-full">
       <SheetHeader className="px-6 pt-6 pb-4 shrink-0">
@@ -121,27 +161,50 @@ export function DayDrawer({
           {DAY_LABELS[dayOfWeek] ?? dayOfWeek}
         </SheetTitle>
         <p className="text-xs text-zinc-500 mt-1">
-          Selecciona las rutinas para este día.
+          Selecciona y ordena las rutinas para este día.
         </p>
       </SheetHeader>
 
-      {/* Selected tags */}
+      {/* Lista ordenada de rutinas seleccionadas */}
       {selectedRoutines.length > 0 && (
-        <div className="px-6 pb-3 shrink-0 flex flex-wrap gap-2">
-          {selectedRoutines.map((r) => (
-            <span
+        <div className="px-6 pb-4 shrink-0 space-y-1.5">
+          <p className="text-xs text-zinc-600 mb-2">
+            Orden de ejecución — arrastra para reordenar
+          </p>
+          {selectedRoutines.map((r, idx) => (
+            <div
               key={r.id}
-              className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-emerald-600/20 border border-emerald-600/40 text-emerald-400"
+              draggable
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDrop={() => handleDrop(idx)}
+              onDragEnd={handleDragEnd}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                dragIdx.current === idx
+                  ? "opacity-40 border-zinc-700 bg-zinc-900"
+                  : dragOverIdx === idx
+                    ? "border-emerald-500 bg-emerald-500/10"
+                    : "border-zinc-800 bg-zinc-900"
+              }`}
             >
-              {r.name}
+              <div className="cursor-grab active:cursor-grabbing text-zinc-600 hover:text-zinc-400 shrink-0">
+                <GripVertical className="h-4 w-4" />
+              </div>
+              <span className="text-xs text-zinc-600 w-4 shrink-0">{idx + 1}.</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">{r.name}</p>
+                <p className={`text-xs ${SESSION_TYPE_COLOR[r.sessionType] ?? "text-zinc-500"}`}>
+                  {r.sessionType}{r.durationMin ? ` · ${r.durationMin} min` : ""}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => toggleRoutine(r.id)}
-                className="hover:text-white transition-colors"
+                className="shrink-0 text-zinc-600 hover:text-red-400 transition-colors"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
-            </span>
+            </div>
           ))}
         </div>
       )}
@@ -153,7 +216,7 @@ export function DayDrawer({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500"
-          autoFocus
+          autoFocus={selectedRoutines.length === 0}
         />
       </div>
 

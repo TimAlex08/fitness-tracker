@@ -34,6 +34,7 @@ export class PrismaSessionRepository implements SessionRepository {
           include: {
             programDays: {
               where: { dayOfWeek: todayName },
+              orderBy: { createdAt: "asc" },
               include: {
                 routine: {
                   include: {
