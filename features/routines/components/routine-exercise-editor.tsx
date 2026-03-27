@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Plus, Trash2, ChevronUp, ChevronDown, Check } from "lucide-react"
+import { Plus, Trash2, Check, GripVertical } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
@@ -75,54 +75,64 @@ function localToPayload(ex: LocalExercise, idx: number) {
 function ExerciseRow({
   ex,
   idx,
-  total,
+  isDragging,
+  isDragOver,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
   onChange,
-  onMove,
   onRemove,
 }: {
   ex: LocalExercise
   idx: number
-  total: number
+  isDragging: boolean
+  isDragOver: boolean
+  onDragStart: () => void
+  onDragOver: (e: React.DragEvent) => void
+  onDrop: () => void
+  onDragEnd: () => void
   onChange: (field: keyof LocalExercise, value: string) => void
-  onMove: (dir: "up" | "down") => void
   onRemove: () => void
 }) {
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 space-y-3">
+    <div
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+      onDragEnd={onDragEnd}
+      className={`bg-zinc-900 border rounded-xl p-4 space-y-3 transition-all cursor-default ${
+        isDragging
+          ? "opacity-40 border-zinc-700"
+          : isDragOver
+            ? "border-emerald-500 shadow-[0_0_0_1px] shadow-emerald-500/40"
+            : "border-zinc-800"
+      }`}
+    >
       {/* Cabecera */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
+          {/* Drag handle */}
+          <div
+            className="shrink-0 cursor-grab active:cursor-grabbing text-zinc-600 hover:text-zinc-400 transition-colors"
+            title="Arrastra para reordenar"
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
           <span className="text-xs text-zinc-600 shrink-0 w-5 text-right">{idx + 1}.</span>
           <div className="min-w-0">
             <p className="text-sm font-medium text-white truncate">{ex.name}</p>
             <p className="text-xs text-zinc-500">{ex.muscleGroup}</p>
           </div>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => onMove("up")}
-            disabled={idx === 0}
-            className="p-1 rounded text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronUp className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onMove("down")}
-            disabled={idx === total - 1}
-            className="p-1 rounded text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-          >
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={onRemove}
-            className="p-1 rounded text-zinc-500 hover:text-red-400 transition-colors ml-1"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="p-1 rounded text-zinc-500 hover:text-red-400 transition-colors shrink-0"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Bloque */}
@@ -146,12 +156,12 @@ function ExerciseRow({
       {/* Parámetros */}
       <div className="grid grid-cols-3 gap-2">
         {[
-          { key: "sets",        label: "Series",    placeholder: "3"    },
-          { key: "reps",        label: "Reps",      placeholder: "10"   },
-          { key: "durationSec", label: "Duración s", placeholder: "30"  },
-          { key: "restSec",     label: "Descanso s", placeholder: "60"  },
-          { key: "tempo",       label: "Tempo",      placeholder: "2-1-2-0" },
-          { key: "rpe",         label: "RPE",        placeholder: "7"   },
+          { key: "sets",        label: "Series",     placeholder: "3"       },
+          { key: "reps",        label: "Reps",       placeholder: "10"      },
+          { key: "durationSec", label: "Duración s",  placeholder: "30"     },
+          { key: "restSec",     label: "Descanso s",  placeholder: "60"     },
+          { key: "tempo",       label: "Tempo",       placeholder: "2-1-2-0" },
+          { key: "rpe",         label: "RPE",         placeholder: "7"      },
         ].map(({ key, label, placeholder }) => (
           <div key={key}>
             <label className="text-xs text-zinc-500 mb-1 block">{label}</label>
@@ -186,20 +196,45 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
   const [pickerSearch, setPickerSearch] = useState("")
   const [error, setError] = useState<string | null>(null)
 
+  // ── Drag & drop state ───────────────────────────────────────────────────────
+
+  const dragIdx = useRef<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+
+  function handleDragStart(idx: number) {
+    dragIdx.current = idx
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    if (dragIdx.current !== null && dragIdx.current !== idx) {
+      setDragOverIdx(idx)
+    }
+  }
+
+  function handleDrop(toIdx: number) {
+    const fromIdx = dragIdx.current
+    if (fromIdx === null || fromIdx === toIdx) return
+    setExercises((prev) => {
+      const next = [...prev]
+      const [moved] = next.splice(fromIdx, 1)
+      next.splice(toIdx, 0, moved)
+      return next
+    })
+    setSaved(false)
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
+  function handleDragEnd() {
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
   // ── Mutaciones locales ──────────────────────────────────────────────────────
 
   function updateExercise(idx: number, field: keyof LocalExercise, value: string) {
     setExercises((prev) => prev.map((ex, i) => i === idx ? { ...ex, [field]: value } : ex))
-    setSaved(false)
-  }
-
-  function moveExercise(idx: number, dir: "up" | "down") {
-    setExercises((prev) => {
-      const next = [...prev]
-      const target = dir === "up" ? idx - 1 : idx + 1
-      ;[next[idx], next[target]] = [next[target], next[idx]]
-      return next
-    })
     setSaved(false)
   }
 
@@ -227,7 +262,7 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
         notes: "",
       },
     ])
-    if (alreadyIn) return // allow duplicates but don't close
+    if (alreadyIn) return
     setPickerOpen(false)
     setPickerSearch("")
     setSaved(false)
@@ -264,7 +299,7 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
     ex.name.toLowerCase().includes(pickerSearch.toLowerCase())
   )
 
-  // ── Agrupación por bloque ───────────────────────────────────────────────────
+  // ── Agrupación por bloque (solo visual) ─────────────────────────────────────
 
   const byBlock = BLOCKS.map((block) => ({
     block,
@@ -280,8 +315,7 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Bloques */}
-      {byBlock.length === 0 && ungrouped.length === 0 ? (
+      {exercises.length === 0 ? (
         <div className="text-center py-12 text-zinc-600 text-sm border border-dashed border-zinc-800 rounded-xl">
           No hay ejercicios. Agrega el primero.
         </div>
@@ -298,9 +332,13 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
                     key={`${ex.exerciseId}-${originalIdx}`}
                     ex={ex}
                     idx={originalIdx}
-                    total={exercises.length}
+                    isDragging={dragIdx.current === originalIdx}
+                    isDragOver={dragOverIdx === originalIdx}
+                    onDragStart={() => handleDragStart(originalIdx)}
+                    onDragOver={(e) => handleDragOver(e, originalIdx)}
+                    onDrop={() => handleDrop(originalIdx)}
+                    onDragEnd={handleDragEnd}
                     onChange={(field, value) => updateExercise(originalIdx, field, value)}
-                    onMove={(dir) => moveExercise(originalIdx, dir)}
                     onRemove={() => removeExercise(originalIdx)}
                   />
                 ))}
@@ -312,9 +350,13 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
               key={`${ex.exerciseId}-${originalIdx}`}
               ex={ex}
               idx={originalIdx}
-              total={exercises.length}
+              isDragging={dragIdx.current === originalIdx}
+              isDragOver={dragOverIdx === originalIdx}
+              onDragStart={() => handleDragStart(originalIdx)}
+              onDragOver={(e) => handleDragOver(e, originalIdx)}
+              onDrop={() => handleDrop(originalIdx)}
+              onDragEnd={handleDragEnd}
               onChange={(field, value) => updateExercise(originalIdx, field, value)}
-              onMove={(dir) => moveExercise(originalIdx, dir)}
               onRemove={() => removeExercise(originalIdx)}
             />
           ))}
