@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const patchSchema = z.object({
   name: z.string().min(3).max(100).optional(),
@@ -14,7 +15,7 @@ type Params = { params: Promise<{ id: string }> }
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const { id } = await params
 
@@ -36,18 +37,18 @@ export async function GET(_req: NextRequest, { params }: Params) {
       },
     })
 
-    if (!program) return NextResponse.json({ error: "Programa no encontrado" }, { status: 404 })
+    if (!program) return apiError("Programa no encontrado", 404)
     return NextResponse.json(program)
   } catch (error) {
     console.error("[GET /api/programs/[id]]", error)
-    return NextResponse.json({ error: "Error obteniendo programa" }, { status: 500 })
+    return apiError("Error obteniendo programa", 500)
   }
 }
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const { id } = await params
 
@@ -59,7 +60,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
 
     // Verificar que el programa pertenece al usuario
     const existing = await prisma.program.findUnique({ where: { id, userId: user.id } })
-    if (!existing) return NextResponse.json({ error: "Programa no encontrado" }, { status: 404 })
+    if (!existing) return apiError("Programa no encontrado", 404)
 
     const data = parsed.data
 
@@ -85,24 +86,24 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json(program)
   } catch (error) {
     console.error("[PATCH /api/programs/[id]]", error)
-    return NextResponse.json({ error: "Error actualizando programa" }, { status: 500 })
+    return apiError("Error actualizando programa", 500)
   }
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const { id } = await params
 
     const existing = await prisma.program.findUnique({ where: { id, userId: user.id } })
-    if (!existing) return NextResponse.json({ error: "Programa no encontrado" }, { status: 404 })
+    if (!existing) return apiError("Programa no encontrado", 404)
 
     await prisma.program.delete({ where: { id } })
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("[DELETE /api/programs/[id]]", error)
-    return NextResponse.json({ error: "Error eliminando programa" }, { status: 500 })
+    return apiError("Error eliminando programa", 500)
   }
 }

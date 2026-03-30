@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 export async function GET() {
   const user = await getSession()
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!user) return apiError("Unauthorized", 401)
 
   const logs = await prisma.dailyLog.findMany({
     where: { userId: user.id },

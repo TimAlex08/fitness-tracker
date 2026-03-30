@@ -2,25 +2,26 @@ import { NextRequest, NextResponse } from "next/server"
 import { PrismaRoutineRepository } from "@/features/routines/api/prisma-routine-repository"
 import { createRoutineSchema } from "@/features/routines/schemas/routine.schema"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const repo = new PrismaRoutineRepository()
 
 export async function GET() {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
     const routines = await repo.findAll(user.id)
     return NextResponse.json(routines)
   } catch (error) {
     console.error("[GET /api/routines]", error)
-    return NextResponse.json({ error: "Error obteniendo rutinas" }, { status: 500 })
+    return apiError("Error obteniendo rutinas", 500)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = createRoutineSchema.safeParse(body)
@@ -32,6 +33,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(routine, { status: 201 })
   } catch (error) {
     console.error("[POST /api/routines]", error)
-    return NextResponse.json({ error: "Error creando rutina" }, { status: 500 })
+    return apiError("Error creando rutina", 500)
   }
 }

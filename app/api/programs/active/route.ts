@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 export async function GET() {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const program = await prisma.program.findFirst({
       where: { userId: user.id, isActive: true },
@@ -28,6 +29,6 @@ export async function GET() {
     return NextResponse.json(program ?? null)
   } catch (error) {
     console.error("[GET /api/programs/active]", error)
-    return NextResponse.json({ error: "Error obteniendo programa" }, { status: 500 })
+    return apiError("Error obteniendo programa", 500)
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const DAY_OF_WEEK = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] as const
 
@@ -31,7 +32,7 @@ type Params = { params: Promise<{ id: string; phaseId: string }> }
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const { id: programId, phaseId } = await params
 
@@ -39,7 +40,7 @@ export async function PUT(request: NextRequest, { params }: Params) {
     const phase = await prisma.phase.findFirst({
       where: { id: phaseId, programId, program: { userId: user.id } },
     })
-    if (!phase) return NextResponse.json({ error: "Fase no encontrada" }, { status: 404 })
+    if (!phase) return apiError("Fase no encontrada", 404)
 
     const body = await request.json()
     const parsed = bodySchema.safeParse(body)
@@ -83,6 +84,6 @@ export async function PUT(request: NextRequest, { params }: Params) {
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error("[PUT /api/programs/[id]/phases/[phaseId]/days]", error)
-    return NextResponse.json({ error: "Error guardando días" }, { status: 500 })
+    return apiError("Error guardando días", 500)
   }
 }

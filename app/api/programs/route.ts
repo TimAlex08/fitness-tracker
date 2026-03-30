@@ -2,26 +2,27 @@ import { NextRequest, NextResponse } from "next/server"
 import { PrismaProgramRepository } from "@/features/programs/api/prisma-program-repository"
 import { createProgramSchema } from "@/features/programs/schemas/program.schema"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const repo = new PrismaProgramRepository()
 
 export async function GET() {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const programs = await repo.findAll(user.id)
     return NextResponse.json(programs)
   } catch (error) {
     console.error("[GET /api/programs]", error)
-    return NextResponse.json({ error: "Error al obtener programas" }, { status: 500 })
+    return apiError("Error al obtener programas", 500)
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = createProgramSchema.safeParse(body)
@@ -37,6 +38,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(program, { status: 201 })
   } catch (error: unknown) {
     console.error("[POST /api/programs]", error)
-    return NextResponse.json({ error: "Error al crear el programa" }, { status: 500 })
+    return apiError("Error al crear el programa", 500)
   }
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
 import { updateExerciseLogSchema } from "@/features/session/schemas/session.schema"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const repo = new PrismaSessionRepository()
 
@@ -11,7 +12,7 @@ export async function PUT(
 ) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const { id } = await params
     const body = await request.json()
@@ -28,9 +29,6 @@ export async function PUT(
     return NextResponse.json(updated)
   } catch (error) {
     console.error("[PUT /api/exercise-log/[id]]", error)
-    return NextResponse.json(
-      { error: "Error updating exercise log" },
-      { status: 500 }
-    )
+    return apiError("Error updating exercise log", 500)
   }
 }

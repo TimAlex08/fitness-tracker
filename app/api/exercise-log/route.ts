@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server"
 import { PrismaSessionRepository } from "@/features/session/api/prisma-session-repository"
 import { upsertExerciseLogSchema } from "@/features/session/schemas/session.schema"
 import { getSession } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
 
 const repo = new PrismaSessionRepository()
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getSession()
-    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    if (!user) return apiError("Unauthorized", 401)
 
     const body = await request.json()
     const parsed = upsertExerciseLogSchema.safeParse(body)
@@ -24,9 +25,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result, { status: 201 })
   } catch (error) {
     console.error("[POST /api/exercise-log]", error)
-    return NextResponse.json(
-      { error: "Error saving exercise log" },
-      { status: 500 }
-    )
+    return apiError("Error saving exercise log", 500)
   }
 }
