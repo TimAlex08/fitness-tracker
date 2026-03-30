@@ -111,24 +111,26 @@ export function SessionFocusView({
         <Button
           variant="secondary"
           size="icon"
+          aria-label="Ejercicio anterior"
           className={cn(
             "rounded-full pointer-events-auto h-12 w-12 bg-zinc-900/80 border border-zinc-800 text-white shadow-xl backdrop-blur-sm",
             currentExerciseIndex === 0 && "invisible"
           )}
           onClick={() => onSetExerciseIndex(currentExerciseIndex - 1)}
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
         </Button>
         <Button
           variant="secondary"
           size="icon"
+          aria-label="Ejercicio siguiente"
           className={cn(
             "rounded-full pointer-events-auto h-12 w-12 bg-zinc-900/80 border border-zinc-800 text-white shadow-xl backdrop-blur-sm",
             currentExerciseIndex === exercises.length - 1 && "invisible"
           )}
           onClick={() => onSetExerciseIndex(currentExerciseIndex + 1)}
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
         </Button>
       </div>
 

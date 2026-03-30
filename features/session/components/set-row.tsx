@@ -21,8 +21,9 @@ export function SetRow({ index, reps, isIsometric, targetReps, targetDuration, o
           value={reps || ""}
           onChange={(e) => onReps(parseInt(e.target.value, 10) || 0)}
           placeholder={isIsometric ? `${targetDuration ?? 30}` : `${targetReps ?? 0}`}
+          aria-label={isIsometric ? `Set ${index + 1} duración en segundos` : `Set ${index + 1} repeticiones`}
           style={{ touchAction: "manipulation" }}
-          className="w-14 min-h-[48px] rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 text-center text-xs text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:outline-none transition-all active:scale-95 transition-transform"
+          className="w-14 min-h-[48px] rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 text-center text-xs text-white placeholder-zinc-700 focus:border-emerald-500/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 transition-all active:scale-95 transition-transform"
         />
         <span className="text-[10px] font-bold text-zinc-700 uppercase tracking-tighter">
           {isIsometric ? "Seg" : "Reps"}

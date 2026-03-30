@@ -19,8 +19,9 @@ export function DeleteUserButton({ userId, userName }: { userId: string; userNam
 
   return (
     <Button variant="ghost" size="icon" onClick={handleDelete} disabled={loading}
+      aria-label={`Eliminar usuario ${userName}`}
       className="h-7 w-7 text-zinc-500 hover:text-red-400 hover:bg-red-400/10">
-      <Trash2 className="h-3.5 w-3.5" />
+      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
     </Button>
   )
 }

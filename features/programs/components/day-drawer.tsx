@@ -215,6 +215,7 @@ export function DayDrawer({
           placeholder="Buscar rutina..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          aria-label="Buscar rutina"
           className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500"
           autoFocus={selectedRoutines.length === 0}
         />

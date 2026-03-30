@@ -400,6 +400,7 @@ export function RoutineExerciseEditor({ routine, allExercises }: Props) {
               placeholder="Buscar..."
               value={pickerSearch}
               onChange={(e) => setPickerSearch(e.target.value)}
+              aria-label="Buscar ejercicio para agregar"
               className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-500"
               autoFocus
             />

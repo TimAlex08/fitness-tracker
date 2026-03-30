@@ -61,7 +61,8 @@ function NumericInput({
             onChange(e.target.value ? parseFloat(e.target.value) : null)
           }
           placeholder={placeholder ?? "—"}
-          className="w-24 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:outline-none"
+          aria-label={label}
+          className="w-24 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm text-white placeholder-zinc-600 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
         />
         {unit && <span className="text-xs text-zinc-500">{unit}</span>}
       </div>
@@ -288,6 +289,7 @@ export function PostSessionForm({ onSubmit }: PostSessionFormProps) {
           value={data.notes}
           onChange={(e) => set("notes", e.target.value)}
           placeholder="Cómo te sentiste, qué mejorar, observaciones..."
+          aria-label="Notas generales de la sesión"
           className="text-sm bg-zinc-800 border-zinc-700 text-zinc-300 placeholder-zinc-600 resize-none min-h-[80px]"
         />
       </div>

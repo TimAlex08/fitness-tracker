@@ -77,7 +77,8 @@ export function ExercisePicker({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar ejercicio..."
-            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none"
+            aria-label="Buscar ejercicio"
+            className="w-full rounded-lg border border-zinc-700 bg-zinc-800 pl-9 pr-3 py-2 text-sm text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400"
           />
         </div>
       </div>

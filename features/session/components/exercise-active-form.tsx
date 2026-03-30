@@ -99,6 +99,7 @@ export function ExerciseActiveForm({
           value={notes}
           onChange={(e) => onNotes(e.target.value)}
           placeholder="Notas rápidas..."
+          aria-label="Notas del ejercicio"
           className="text-[11px] bg-zinc-900 border-zinc-800 text-zinc-400 placeholder-zinc-700 resize-none min-h-[40px] rounded-xl focus:border-emerald-500/50"
         />
       </div>

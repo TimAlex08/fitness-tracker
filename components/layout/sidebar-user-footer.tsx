@@ -34,8 +34,9 @@ export function SidebarUserFooter({ user }: { user: User }) {
         disabled={loading}
         className="h-7 w-7 shrink-0 text-zinc-500 hover:text-white hover:bg-zinc-700"
         title="Cerrar sesión"
+        aria-label="Cerrar sesión"
       >
-        <LogOut className="h-3.5 w-3.5" />
+        <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
       </Button>
     </div>
   )

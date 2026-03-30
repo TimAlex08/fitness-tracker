@@ -80,7 +80,8 @@ export function ExerciseFilters() {
             defaultValue={query}
             onChange={(e) => navigate({ q: e.target.value || null })}
             placeholder="Buscar ejercicio..."
-            className="w-full pl-9 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-0"
+            aria-label="Buscar ejercicio"
+            className="w-full pl-9 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 focus:ring-0 focus-visible:ring-2 focus-visible:ring-zinc-400"
           />
         </div>
 
@@ -90,7 +91,8 @@ export function ExerciseFilters() {
           <select
             value={sort}
             onChange={(e) => navigate({ sort: e.target.value === "name_asc" ? null : e.target.value })}
-            className="h-full pl-7 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-zinc-600 appearance-none cursor-pointer hover:border-zinc-600 transition-colors"
+            aria-label="Ordenar ejercicios"
+            className="h-full pl-7 pr-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm text-zinc-300 focus:outline-none focus:border-zinc-600 focus-visible:ring-2 focus-visible:ring-zinc-400 appearance-none cursor-pointer hover:border-zinc-600 transition-colors"
           >
             {SORT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>

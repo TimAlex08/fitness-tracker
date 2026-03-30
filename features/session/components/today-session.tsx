@@ -50,12 +50,14 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
     const completedCount = Object.values(exerciseStates).filter((s) => s.completed).length
     const total = mode === "structured" ? (routine?.exercises.length ?? 0) : freeExercises.length
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4">
-          <Trophy className="h-7 w-7 text-emerald-400" />
+      <div aria-live="polite" aria-atomic="true">
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="h-14 w-14 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-4">
+            <Trophy className="h-7 w-7 text-emerald-400" aria-hidden="true" />
+          </div>
+          <h2 className="text-lg font-bold text-white mb-1">¡Sesión completada!</h2>
+          <p className="text-zinc-400 text-sm">{completedCount} de {total} ejercicios realizados.</p>
         </div>
-        <h2 className="text-lg font-bold text-white mb-1">¡Sesión completada!</h2>
-        <p className="text-zinc-400 text-sm">{completedCount} de {total} ejercicios realizados.</p>
       </div>
     )
   }
