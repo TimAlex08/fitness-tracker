@@ -33,7 +33,14 @@ export function SessionProgressCard({
           )}
         </div>
       </div>
-      <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
+      <div
+        className="h-2 rounded-full bg-zinc-800 overflow-hidden"
+        role="progressbar"
+        aria-valuenow={completedCount}
+        aria-valuemin={0}
+        aria-valuemax={totalCount}
+        aria-label={`${completedCount} de ${totalCount} ejercicios completados`}
+      >
         <div
           className="h-full bg-emerald-500 transition-all duration-500"
           style={{ width: `${progressPct}%` }}

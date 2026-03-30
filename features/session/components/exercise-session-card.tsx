@@ -69,7 +69,7 @@ export function ExerciseSessionCard({
     <div
       className={`rounded-xl border p-4 transition-colors ${
         state.completed
-          ? "border-emerald-500/30 bg-emerald-500/5"
+          ? "border-emerald-800 bg-emerald-950/40"
           : "border-zinc-800 bg-zinc-900"
       }`}
     >
