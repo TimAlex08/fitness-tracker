@@ -9,6 +9,7 @@ import type {
   WeeklyPain,
   PhaseInfo,
 } from "../types/progress.types"
+import type { ProgressRepository } from "./progress-repository"
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -37,7 +38,7 @@ const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "frid
 
 // ─── Repositorio ──────────────────────────────────────────────────────────────
 
-export class PrismaProgressRepository {
+export class PrismaProgressRepository implements ProgressRepository {
   async getProgressData(userId: string): Promise<ProgressData> {
     const [stats, weeklyVolume, exerciseProgressions, weeklyPain, phase] = await Promise.all([
       this.getStats(userId),
