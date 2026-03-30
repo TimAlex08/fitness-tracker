@@ -10,6 +10,7 @@ export interface RoutineSummary {
   estimatedDuration: number | null
   rpeTarget: string | null
   sessionType: SessionType
+  exercises?: { name: string; sets: number | null; reps: number | null }[]
 }
 
 export interface DailyLogSummary {

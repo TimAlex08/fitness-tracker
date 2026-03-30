@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Play, Timer, CheckCircle2, ChevronRight, CheckCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 type SimplifiedExerciseFormProps = {
   isIsometric: boolean

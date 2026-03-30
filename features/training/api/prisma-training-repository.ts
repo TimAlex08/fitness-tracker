@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { SessionType } from "@prisma/client"
 import type { WeekData, MonthData, YearData, WeekDay, MonthDay, YearDay, DayStatus } from "@/features/training/types/training.types"
 import type { TrainingRepository } from "./training-repository"
 import { calculateStreak } from "../utils/training-grid"
@@ -46,10 +47,11 @@ interface RoutineEntry {
   id: string
   name: string
   dayOfWeek: string
-  sessionType: string
+  sessionType: SessionType
   durationMin: number | null
   exerciseCount: number
   rpeTarget: string | null
+  exercises: { name: string; sets: number | null; reps: number | null }[]
 }
 
 async function getActiveRoutines(): Promise<RoutineEntry[]> {
@@ -65,6 +67,11 @@ async function getActiveRoutines(): Promise<RoutineEntry[]> {
               routine: {
                 include: {
                   _count: { select: { exercises: true } },
+                  exercises: {
+                    include: { exercise: { select: { name: true } } },
+                    orderBy: { order: "asc" },
+                    take: 3
+                  }
                 },
               },
             },
@@ -85,6 +92,11 @@ async function getActiveRoutines(): Promise<RoutineEntry[]> {
     durationMin: pd.routine.durationMin,
     exerciseCount: pd.routine._count.exercises,
     rpeTarget: phase.rpeTarget,
+    exercises: pd.routine.exercises.map(re => ({
+      name: re.exercise.name,
+      sets: re.sets,
+      reps: re.reps
+    }))
   }))
 }
 
@@ -134,7 +146,8 @@ export class PrismaTrainingRepository implements TrainingRepository {
               exerciseCount: routine.exerciseCount,
               estimatedDuration: routine.durationMin,
               rpeTarget: routine.rpeTarget,
-              sessionType: routine.sessionType as never,
+              sessionType: routine.sessionType,
+              exercises: routine.exercises,
             }
           : null,
         dailyLog: log

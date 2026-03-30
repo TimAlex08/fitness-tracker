@@ -52,10 +52,8 @@ function formatTarget(re: RoutineExerciseWithDetails): string {
 export function FocusExerciseCard({
   routineExercise: re,
   state,
-  onSetReps,
   onRpe,
   onPain,
-  onNotes,
   onComplete,
   className,
   isLastExercise,

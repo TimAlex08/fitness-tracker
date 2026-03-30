@@ -14,6 +14,7 @@ interface DayCellProps {
   size?: "sm" | "md"
   /** Para heatmap: mostrar tooltip */
   tooltip?: string
+  className?: string
 }
 
 const STATUS_COLORS: Record<DayStatus, string> = {
@@ -24,7 +25,7 @@ const STATUS_COLORS: Record<DayStatus, string> = {
   PENDING: "bg-zinc-700 border border-zinc-600",
 }
 
-export function DayCell({ status, isToday, size = "md", tooltip }: DayCellProps) {
+export function DayCell({ status, isToday, size = "md", tooltip, className }: DayCellProps) {
   const sizeClass = size === "sm" ? "w-3 h-3 rounded-sm" : "w-7 h-7 rounded-full"
   const colorClass = status ? STATUS_COLORS[status] : "bg-zinc-800"
 
@@ -36,7 +37,8 @@ export function DayCell({ status, isToday, size = "md", tooltip }: DayCellProps)
         colorClass,
         isToday && "ring-2 ring-offset-2 ring-offset-zinc-950 ring-white",
         "transition-all duration-300 group-hover:scale-110 cursor-pointer shadow-lg",
-        status === "PENDING" && "opacity-50 group-hover:opacity-100"
+        status === "PENDING" && "opacity-50 group-hover:opacity-100",
+        className
       )}
     />
   )
