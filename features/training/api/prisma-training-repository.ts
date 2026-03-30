@@ -96,7 +96,7 @@ function routineForDay(routines: RoutineEntry[], jsDay: number): RoutineEntry | 
 // ─── Implementación ───────────────────────────────────────────────────────────
 
 export class PrismaTrainingRepository implements TrainingRepository {
-  async getWeekData(date: Date): Promise<WeekData> {
+  async getWeekData(date: Date, userId: string): Promise<WeekData> {
     const monday = getMondayOfWeek(date)
     const sunday = new Date(monday)
     sunday.setDate(sunday.getDate() + 6)
@@ -105,7 +105,7 @@ export class PrismaTrainingRepository implements TrainingRepository {
     const [routines, dailyLogs] = await Promise.all([
       getActiveRoutines(),
       prisma.dailyLog.findMany({
-        where: { date: { gte: monday, lte: sunday } },
+        where: { userId, date: { gte: monday, lte: sunday } },
         include: { _count: { select: { exerciseLogs: true } } },
         orderBy: { date: "asc" },
       }),
@@ -156,14 +156,14 @@ export class PrismaTrainingRepository implements TrainingRepository {
     }
   }
 
-  async getMonthData(year: number, month: number): Promise<MonthData> {
+  async getMonthData(year: number, month: number, userId: string): Promise<MonthData> {
     const firstDay = new Date(year, month - 1, 1)
     const lastDay = new Date(year, month, 0, 23, 59, 59, 999)
 
     const [routines, dailyLogs] = await Promise.all([
       getActiveRoutines(),
       prisma.dailyLog.findMany({
-        where: { date: { gte: firstDay, lte: lastDay } },
+        where: { userId, date: { gte: firstDay, lte: lastDay } },
         select: { date: true, status: true },
         orderBy: { date: "asc" },
       }),
@@ -204,14 +204,14 @@ export class PrismaTrainingRepository implements TrainingRepository {
     return { days, currentStreak, adherence, completedDays, totalPastDays }
   }
 
-  async getYearData(year: number): Promise<YearData> {
+  async getYearData(year: number, userId: string): Promise<YearData> {
     const firstDay = new Date(year, 0, 1)
     const lastDay = new Date(year, 11, 31, 23, 59, 59, 999)
 
     const [routines, dailyLogs] = await Promise.all([
       getActiveRoutines(),
       prisma.dailyLog.findMany({
-        where: { date: { gte: firstDay, lte: lastDay } },
+        where: { userId, date: { gte: firstDay, lte: lastDay } },
         select: { date: true, status: true },
         orderBy: { date: "asc" },
       }),
