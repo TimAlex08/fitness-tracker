@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { hashPassword, createSession, sessionCookieOptions } from "@/lib/auth"
+import { apiError } from "@/lib/api-error"
+import { rateLimit } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for") ?? "unknown"
+  if (!rateLimit(`register:${ip}`, 5, 60_000)) {
+    return apiError("Demasiados intentos. Espera 1 minuto.", 429)
+  }
+
   const { name, email, password } = await request.json()
 
   if (!name || !email || !password || password.length < 8) {
