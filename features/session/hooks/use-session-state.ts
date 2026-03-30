@@ -13,7 +13,7 @@ import { calculateCompletionStatus, parseRepsPerSet } from "@/features/session/s
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
-export type SessionPhase = "training" | "post-session" | "done"
+export type SessionPhase = "idle" | "training" | "post-session" | "done"
 export type SessionMode = "structured" | "free"
 export type ViewMode = "list" | "focus"
 
@@ -35,7 +35,8 @@ function initExerciseState(
   }
 ): ExerciseState {
   const sets: SetLog[] = Array.from({ length: numSets }, (_, i) => {
-    const parsedReps = parseRepsPerSet(existingLog?.repsPerSet); let reps = parsedReps[i] ?? 0
+    const parsedReps = parseRepsPerSet(existingLog?.repsPerSet); 
+    const reps = parsedReps[i] ?? 0
     return { reps }
   })
   return {
@@ -74,14 +75,16 @@ function toVirtualRoutineExercise(
 
 export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
   const [mode, setMode] = useState<SessionMode>("structured")
-  const [viewMode, setViewMode] = useState<ViewMode>("list")
+  const [viewMode, setViewMode] = useState<ViewMode>("focus") // Default to focus for better mobile experience
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [showPicker, setShowPicker] = useState(false)
   const [freeExercises, setFreeExercises] = useState<RoutineExerciseWithDetails[]>([])
   const [dailyLogId, setDailyLogId] = useState<string | null>(dailyLog?.id ?? null)
-  const [sessionPhase, setSessionPhase] = useState<SessionPhase>(() =>
-    dailyLog?.status === "COMPLETED" ? "done" : "training"
-  )
+  const [sessionPhase, setSessionPhase] = useState<SessionPhase>(() => {
+    if (dailyLog?.status === "COMPLETED") return "done"
+    if (dailyLog?.status === "PENDING" || dailyLog?.status === "PARTIAL") return "training"
+    return "idle"
+  })
   const [restTimer, setRestTimer] = useState({ seconds: 60, visible: false })
   const [exerciseStates, setExerciseStates] = useState<Record<string, ExerciseState>>(() => {
     if (!routine) return {}

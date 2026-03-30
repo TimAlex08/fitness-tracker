@@ -10,16 +10,18 @@ import { RestTimer } from "@/features/session/components/rest-timer"
 import { ExercisePicker } from "@/features/session/components/exercise-picker"
 import { FocusProgressBar } from "@/features/session/components/focus-progress-bar"
 import { SessionFocusView } from "@/features/session/components/session-focus-view"
-import { CheckCircle2, Dumbbell, Plus, Trophy, ChevronDown, ChevronUp, LayoutList, Focus } from "lucide-react"
+import { DashboardView } from "@/features/session/components/dashboard-view"
+import { CalendarDays, CheckCircle2, Dumbbell, Plus, Trophy, ChevronDown, ChevronUp, LayoutList, Focus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type TodaySessionProps = {
   routine: RoutineWithExercises | null
   dailyLog: DailyLogWithExercises | null
   allExercises: Exercise[]
+  today: string
 }
 
-export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionProps) {
+export function TodaySession({ routine, dailyLog, allExercises, today }: TodaySessionProps) {
   const {
     mode,
     viewMode,
@@ -43,6 +45,37 @@ export function TodaySession({ routine, dailyLog, allExercises }: TodaySessionPr
     handleCompleteExercise,
     handleFinishSession,
   } = useSessionState({ routine, dailyLog })
+
+  // ── Dashboard / Idle ──────────────────────────────────────────────────────
+
+  if (sessionPhase === "idle") {
+    return (
+      <div className="space-y-6">
+        {/* Encabezado */}
+        <div className="mb-6 animate-in fade-in duration-500">
+          <div className="flex items-center gap-2 text-zinc-500 text-sm mb-1 capitalize">
+            <CalendarDays className="h-4 w-4 shrink-0" />
+            <span>{today}</span>
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight">
+            {routine ? routine.name : "Día de descanso"}
+          </h1>
+          {routine && (
+            <p className="text-sm text-zinc-400 mt-1">
+              {routine.durationMin && `${routine.durationMin} min estimados · `}
+              {routine.exercises.length} ejercicios
+            </p>
+          )}
+        </div>
+
+        <DashboardView 
+          routine={routine} 
+          onStart={() => setSessionPhase("training")} 
+          onStartFree={startFreeSession} 
+        />
+      </div>
+    )
+  }
 
   // ── Sesión completada ─────────────────────────────────────────────────────
 

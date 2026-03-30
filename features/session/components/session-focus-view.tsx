@@ -101,6 +101,7 @@ export function SessionFocusView({
               onPain={(pain) => onPain(re.id, pain)}
               onNotes={(notes) => onNotes(re.id, notes)}
               onComplete={() => onComplete(re.id, re)}
+              isLastExercise={index === exercises.length - 1}
             />
           </div>
         ))}
