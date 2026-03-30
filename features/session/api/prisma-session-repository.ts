@@ -7,6 +7,7 @@ import type {
   UpsertExerciseLogInput,
   UpdateExerciseLogInput,
 } from "./session-repository"
+import { parseRepsPerSet, serializeRepsPerSet } from "@/features/session/services/session.service"
 
 function getTodayName(): string {
   const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
@@ -150,7 +151,7 @@ export class PrismaSessionRepository implements SessionRepository {
     const data = {
       completed: true,
       setsCompleted: input.setsCompleted ?? undefined,
-      repsPerSet: Array.isArray(input.repsPerSet) ? JSON.stringify(input.repsPerSet) : undefined,
+      repsPerSet: Array.isArray(input.repsPerSet) ? serializeRepsPerSet(input.repsPerSet) : undefined,
       durationSec: input.durationSec ?? undefined,
       rpeActual: input.rpeActual ?? undefined,
       painDuring: input.painDuring ?? undefined,
@@ -172,7 +173,7 @@ export class PrismaSessionRepository implements SessionRepository {
       data: {
         completed: input.completed ?? true,
         setsCompleted: input.setsCompleted ?? undefined,
-        repsPerSet: Array.isArray(input.repsPerSet) ? JSON.stringify(input.repsPerSet) : undefined,
+        repsPerSet: Array.isArray(input.repsPerSet) ? serializeRepsPerSet(input.repsPerSet) : undefined,
         durationSec: input.durationSec ?? undefined,
         rpeActual: input.rpeActual ?? undefined,
         painDuring: input.painDuring ?? undefined,
