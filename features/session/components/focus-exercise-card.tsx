@@ -120,19 +120,6 @@ export function FocusExerciseCard({
                     <p className="text-orange-200/70 text-xs leading-relaxed">{re.exercise.safetyNotes}</p>
                   </div>
                 )}
-                <div>
-                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black mb-2">Equipamiento</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {re.exercise.equipment?.map((eq) => (
-                      <Badge key={eq} variant="secondary" className="bg-zinc-900 text-zinc-400 border-zinc-800 uppercase text-[9px]">
-                        {eq}
-                      </Badge>
-                    ))}
-                    {(!re.exercise.equipment || re.exercise.equipment.length === 0) && (
-                      <span className="text-[10px] text-zinc-600 font-medium">No requiere equipo especial</span>
-                    )}
-                  </div>
-                </div>
               </div>
             </SheetContent>
           </Sheet>
