@@ -101,7 +101,8 @@ export function MonthView({ data, year, month, onMonthChange }: MonthViewProps) 
       </div>
 
       {/* Cabeceras de días */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="overflow-x-auto -mx-4 px-4">
+      <div className="grid grid-cols-7 gap-1 min-w-[280px]">
         {DAY_HEADERS.map((h) => (
           <div key={h} className="text-center text-xs text-zinc-600 py-1">
             {h}
@@ -143,6 +144,7 @@ export function MonthView({ data, year, month, onMonthChange }: MonthViewProps) 
             </Link>
           )
         })}
+      </div>
       </div>
 
       {/* Leyenda */}

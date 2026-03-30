@@ -44,7 +44,7 @@ async function ExerciseGrid({ muscleGroup, search, sort }: ExerciseGridProps) {
         {muscleGroup ? ` en ${muscleGroup.toLowerCase()}` : " en el catálogo"}
         {search ? ` · "${search}"` : ""}
       </p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {exercises.map((exercise) => (
           <Link
             key={exercise.id}
@@ -104,7 +104,7 @@ export default async function ExercisesPage({ searchParams }: PageProps) {
       {/* Grid */}
       <Suspense
         fallback={
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}

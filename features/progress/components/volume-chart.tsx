@@ -20,7 +20,7 @@ export function VolumeChart({ data }: VolumeChartProps) {
           Completa sesiones para ver el volumen semanal.
         </p>
       ) : (
-        <div className="rounded-xl border border-zinc-800 bg-zinc-900 px-4 pt-4 pb-3">
+        <div className="w-full rounded-xl border border-zinc-800 bg-zinc-900 px-4 pt-4 pb-3">
           <div className="flex items-end gap-2 h-28">
             {data.map((week) => {
               const heightPct =

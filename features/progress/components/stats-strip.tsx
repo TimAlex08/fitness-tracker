@@ -24,7 +24,7 @@ function Stat({ icon, label, value, accent }: StatProps) {
 
 export function StatsStrip({ stats }: StatsStripProps) {
   return (
-    <div className="flex gap-3">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
       <Stat
         icon={<Flame className="h-5 w-5" />}
         label="Racha"
