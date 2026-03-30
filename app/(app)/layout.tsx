@@ -7,6 +7,7 @@
 
 import { Sidebar } from "@/components/layout/sidebar"
 import { MobileHeader } from "@/components/layout/mobile-header"
+import { BottomNav } from "@/components/layout/bottom-nav"
 import { getRequiredSession } from "@/lib/get-session"
 
 export default async function AppLayout({
@@ -30,13 +31,14 @@ export default async function AppLayout({
 
         {/* Contenido de la página con scroll independiente */}
         <main
-          className="flex-1 overflow-y-auto"
+          className="flex-1 overflow-y-auto pb-20 lg:pb-0"
           id="main-content"
           aria-label="Contenido principal"
         >
           {children}
         </main>
       </div>
+      <BottomNav />
     </div>
   )
 }
