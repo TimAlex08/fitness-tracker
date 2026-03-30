@@ -148,19 +148,28 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
   }
 
   const handleCompleteExercise = useCallback(
-    async (reId: string, routineExercise: RoutineExerciseWithDetails, routineId?: string) => {
+    async (reId: string, routineExercise: RoutineExerciseWithDetails, routineId?: string, actualValue?: number) => {
       updateExercise(reId, { submitting: true })
       try {
         const logId = await ensureDailyLog(routineId)
         const state = exerciseStates[reId]
+        
+        // Determinar si actualValue es para reps o duración
+        const isIsometric = !routineExercise.reps && !routineExercise.exercise.defaultReps
+        const finalDuration = isIsometric ? (actualValue ?? routineExercise.durationSec) : routineExercise.durationSec
+        const finalReps = !isIsometric && actualValue !== undefined 
+          ? state.sets.map(() => actualValue) 
+          : state.sets.map((s) => s.reps)
+
         await fetch("/api/exercise-log", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             dailyLogId: logId,
             exerciseId: routineExercise.exerciseId,
-            setsCompleted: state.sets.filter((s) => s.reps > 0).length,
-            repsPerSet: state.sets.map((s) => s.reps),
+            setsCompleted: state.sets.filter((s) => s.reps > 0 || actualValue !== undefined).length || 1,
+            repsPerSet: finalReps,
+            durationSec: finalDuration,
             rpeActual: state.rpeActual,
             painDuring: state.painDuring,
             notes: state.notes || undefined,

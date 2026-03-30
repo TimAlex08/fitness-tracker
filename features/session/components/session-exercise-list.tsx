@@ -17,7 +17,7 @@ type SessionExerciseListProps = {
   onRpe: (reId: string, rpe: number) => void
   onPain: (reId: string, pain: number) => void
   onNotes: (reId: string, notes: string) => void
-  onComplete: (reId: string, re: RoutineExerciseWithDetails) => void
+  onComplete: (reId: string, re: RoutineExerciseWithDetails, actualValue?: number) => void
 }
 
 export function SessionExerciseList({

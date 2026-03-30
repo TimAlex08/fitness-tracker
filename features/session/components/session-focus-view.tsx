@@ -17,7 +17,7 @@ type SessionFocusViewProps = {
   onRpe: (reId: string, rpe: number) => void
   onPain: (reId: string, pain: number) => void
   onNotes: (reId: string, notes: string) => void
-  onComplete: (reId: string, re: RoutineExerciseWithDetails) => void
+  onComplete: (reId: string, re: RoutineExerciseWithDetails, actualValue?: number) => void
 }
 
 export function SessionFocusView({
@@ -100,7 +100,7 @@ export function SessionFocusView({
               onRpe={(rpe) => onRpe(re.id, rpe)}
               onPain={(pain) => onPain(re.id, pain)}
               onNotes={(notes) => onNotes(re.id, notes)}
-              onComplete={() => onComplete(re.id, re)}
+              onComplete={(val) => onComplete(re.id, re, val)}
               isLastExercise={index === exercises.length - 1}
             />
           </div>

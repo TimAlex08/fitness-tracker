@@ -79,7 +79,7 @@ export function TrainingDayCard({ routine, status, isToday, selectedDate }: Trai
       </div>
 
       <Link
-        href={isToday ? "/today" : `/training/session?date=${selectedDate}`}
+        href={isToday ? "/training/session" : `/training/session?date=${selectedDate}`}
         className={cn(
           "mt-8 w-full h-[54px] lg:h-[56px] flex items-center justify-center rounded-xl",
           "bg-emerald-500 text-black font-bold text-base transition-all",

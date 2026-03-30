@@ -6,15 +6,6 @@ import { SetRow } from "./set-row"
 import type { SetLog } from "@/features/session/components/exercise-session-card"
 import { cn } from "@/lib/utils"
 
-const PAIN_COLORS = [
-  "bg-emerald-500 text-white",
-  "bg-green-500 text-white",
-  "bg-yellow-500 text-black",
-  "bg-orange-500 text-white",
-  "bg-red-500 text-white",
-  "bg-red-700 text-white",
-]
-
 type ExerciseActiveFormProps = {
   numSets: number
   sets: SetLog[]
@@ -37,8 +28,8 @@ export function ExerciseActiveForm({
   targetReps, targetDuration, onSetReps, onRpe, onPain, onNotes, onComplete,
 }: ExerciseActiveFormProps) {
   return (
-    <div className="flex flex-col h-full">
-      <div className="space-y-1 mb-3">
+    <div className="flex flex-col h-full space-y-4">
+      <div className="space-y-1">
         {Array.from({ length: numSets }).map((_, i) => (
           <SetRow
             key={i}
@@ -52,19 +43,20 @@ export function ExerciseActiveForm({
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 mb-3">
+      <div className="space-y-4">
+        {/* RPE 1-10 */}
         <div className="space-y-1.5">
-          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">RPE Real</p>
-          <div className="flex gap-1 flex-wrap">
-            {[7, 8, 9, 10].map((n) => (
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Esfuerzo (RPE)</p>
+          <div className="flex justify-between gap-1 flex-wrap">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
               <button
                 key={n}
                 onClick={() => onRpe(n)}
                 className={cn(
-                  "h-7 w-7 rounded-lg text-xs font-bold transition-all",
+                  "h-7 flex-1 rounded-lg text-xs font-bold transition-all",
                   rpeActual === n 
                     ? "bg-emerald-500 text-white scale-110 shadow-lg" 
-                    : "bg-zinc-900 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
+                    : "bg-zinc-950 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
                 )}
               >
                 {n}
@@ -73,18 +65,19 @@ export function ExerciseActiveForm({
           </div>
         </div>
 
+        {/* Dolor 1-10 */}
         <div className="space-y-1.5">
-          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Dolor (0-5)</p>
-          <div className="flex gap-1">
-            {[0, 2, 4, 5].map((n) => (
+          <p className="text-[10px] text-zinc-600 font-bold uppercase tracking-widest">Dolor (1-10)</p>
+          <div className="flex justify-between gap-1 flex-wrap">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
               <button
                 key={n}
                 onClick={() => onPain(n)}
                 className={cn(
-                  "h-7 w-7 rounded-lg text-xs font-bold transition-all",
+                  "h-7 flex-1 rounded-lg text-xs font-bold transition-all",
                   painDuring === n 
-                    ? PAIN_COLORS[n] + " scale-110 shadow-lg" 
-                    : "bg-zinc-900 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
+                    ? "bg-orange-500 text-white scale-110 shadow-lg" 
+                    : "bg-zinc-950 text-zinc-500 border border-zinc-800 hover:bg-zinc-800"
                 )}
               >
                 {n}
@@ -94,13 +87,13 @@ export function ExerciseActiveForm({
         </div>
       </div>
 
-      <div className="mb-3">
+      <div className="">
         <Textarea
           value={notes}
           onChange={(e) => onNotes(e.target.value)}
           placeholder="Notas rápidas..."
           aria-label="Notas del ejercicio"
-          className="text-[11px] bg-zinc-900 border-zinc-800 text-zinc-400 placeholder-zinc-700 resize-none min-h-[40px] rounded-xl focus:border-emerald-500/50"
+          className="text-[11px] bg-zinc-950 border-zinc-800 text-zinc-400 placeholder-zinc-700 resize-none min-h-[40px] rounded-xl focus:border-emerald-500/50"
         />
       </div>
 
@@ -108,7 +101,7 @@ export function ExerciseActiveForm({
         <Button
           onClick={onComplete}
           disabled={submitting}
-          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-10 rounded-xl uppercase tracking-widest"
+          className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold h-10 rounded-xl uppercase tracking-widest transition-all active:scale-[0.98]"
         >
           {submitting ? "Guardando..." : "Terminar Ejercicio"}
         </Button>
@@ -116,4 +109,3 @@ export function ExerciseActiveForm({
     </div>
   )
 }
-

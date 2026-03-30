@@ -25,7 +25,7 @@ type ExerciseSessionCardProps = {
   onRpe: (rpe: number) => void
   onPain: (pain: number) => void
   onNotes: (notes: string) => void
-  onComplete: () => void
+  onComplete: (actualValue?: number) => void
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
