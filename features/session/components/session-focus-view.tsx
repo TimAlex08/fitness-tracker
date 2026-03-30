@@ -31,121 +31,74 @@ export function SessionFocusView({
   onNotes,
   onComplete,
 }: SessionFocusViewProps) {
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const currentExercise = exercises[currentExerciseIndex]
+  if (!currentExercise) return null
 
-  // ── Sync scroll position with currentExerciseIndex ───────────────────────
-
-  React.useEffect(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    const targetSlide = container.children[currentExerciseIndex] as HTMLElement
-    if (targetSlide) {
-      container.scrollTo({
-        left: targetSlide.offsetLeft - (container.offsetWidth - targetSlide.offsetWidth) / 2,
-        behavior: "smooth",
-      })
-    }
-  }, [currentExerciseIndex])
-
-  // ── Handle manual scroll/snap ──────────────────────────────────────────
-
-  const handleScroll = React.useCallback(() => {
-    const container = containerRef.current
-    if (!container) return
-
-    const scrollLeft = container.scrollLeft
-    const center = scrollLeft + container.offsetWidth / 2
-
-    let closestIndex = 0
-    let minDistance = Infinity
-
-    Array.from(container.children).forEach((child, index) => {
-      const childCenter = (child as HTMLElement).offsetLeft + (child as HTMLElement).offsetWidth / 2
-      const distance = Math.abs(center - childCenter)
-      
-      if (distance < minDistance) {
-        minDistance = distance
-        closestIndex = index
-      }
-    })
-
-    if (closestIndex !== currentExerciseIndex) {
-      onSetExerciseIndex(closestIndex)
-    }
-  }, [currentExerciseIndex, onSetExerciseIndex])
+  const isFirst = currentExerciseIndex === 0
+  const isLast = currentExerciseIndex === exercises.length - 1
+  
+  // Calcular progreso de la sesión (0-100)
+  const completedCount = Object.values(exerciseStates).filter(s => s.completed).length
+  const sessionProgress = (completedCount / exercises.length) * 100
 
   return (
-    <div className="relative w-full max-w-full overflow-hidden">
-      {/* Scroll Container */}
-      <div
-        ref={containerRef}
-        onScroll={handleScroll}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide pb-8 pt-4 gap-4 px-[10%] md:px-[25%] lg:px-[30%]"
-        style={{ scrollBehavior: "smooth" }}
-      >
-        {exercises.map((re, index) => (
-          <div
-            key={re.id}
-            className={cn(
-              "shrink-0 w-full max-w-lg snap-center transition-all duration-500 h-[75vh] sm:h-auto",
-              index !== currentExerciseIndex && "opacity-40 scale-95 blur-[1px]"
-            )}
-          >
-            <FocusExerciseCard
-              routineExercise={re}
-              className="h-full"
-              state={exerciseStates[re.id]}
-              onSetReps={(setIdx, reps) => onSetReps(re.id, setIdx, reps)}
-              onRpe={(rpe) => onRpe(re.id, rpe)}
-              onPain={(pain) => onPain(re.id, pain)}
-              onNotes={(notes) => onNotes(re.id, notes)}
-              onComplete={(val) => onComplete(re.id, re, val)}
-              isLastExercise={index === exercises.length - 1}
-            />
-          </div>
-        ))}
+    <div className="flex flex-col h-full w-full overflow-hidden bg-zinc-950">
+      {/* Exercise Card Area */}
+      <div className="flex-1 relative overflow-hidden">
+        <FocusExerciseCard
+          key={currentExercise.id}
+          routineExercise={currentExercise}
+          state={exerciseStates[currentExercise.id]}
+          onSetReps={(idx, reps) => onSetReps(currentExercise.id, idx, reps)}
+          onRpe={(rpe) => onRpe(currentExercise.id, rpe)}
+          onPain={(pain) => onPain(currentExercise.id, pain)}
+          onNotes={(notes) => onNotes(currentExercise.id, notes)}
+          onComplete={(val) => onComplete(currentExercise.id, currentExercise, val)}
+          isLastExercise={isLast}
+          sessionProgress={sessionProgress}
+          className="animate-in fade-in zoom-in-95 duration-500"
+        />
       </div>
 
-      {/* Navigation Controls (Desktop) */}
-      <div className="hidden md:flex absolute inset-y-0 left-0 right-0 pointer-events-none items-center justify-between px-4">
+      {/* Navigation Controls (Bottom Bar) */}
+      <div className="h-16 shrink-0 bg-zinc-950 border-t border-zinc-900/50 flex items-center justify-between px-6">
         <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Ejercicio anterior"
-          className={cn(
-            "rounded-full pointer-events-auto h-12 w-12 bg-zinc-900/80 border border-zinc-800 text-white shadow-xl backdrop-blur-sm",
-            currentExerciseIndex === 0 && "invisible"
-          )}
+          variant="ghost"
+          size="sm"
           onClick={() => onSetExerciseIndex(currentExerciseIndex - 1)}
+          disabled={isFirst}
+          className="text-zinc-500 hover:text-white disabled:opacity-20 gap-2 font-black uppercase text-[10px] tracking-widest"
         >
-          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+          <ChevronLeft className="h-4 w-4" />
+          Anterior
         </Button>
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Ejercicio siguiente"
-          className={cn(
-            "rounded-full pointer-events-auto h-12 w-12 bg-zinc-900/80 border border-zinc-800 text-white shadow-xl backdrop-blur-sm",
-            currentExerciseIndex === exercises.length - 1 && "invisible"
-          )}
-          onClick={() => onSetExerciseIndex(currentExerciseIndex + 1)}
-        >
-          <ChevronRight className="h-6 w-6" aria-hidden="true" />
-        </Button>
-      </div>
 
-      {/* Dot Indicators */}
-      <div className="flex justify-center gap-2 mt-4">
-        {exercises.map((_, i) => (
-          <div
-            key={i}
-            className={cn(
-              "h-1.5 transition-all duration-300 rounded-full",
-              i === currentExerciseIndex ? "w-8 bg-emerald-500" : "w-1.5 bg-zinc-800"
-            )}
-          />
-        ))}
+        <div className="flex gap-1.5">
+          {exercises.map((_, i) => (
+            <div
+              key={i}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                i === currentExerciseIndex 
+                  ? "w-6 bg-emerald-500" 
+                  : exerciseStates[exercises[i].id].completed
+                    ? "w-1.5 bg-emerald-900"
+                    : "w-1.5 bg-zinc-800"
+              )}
+            />
+          ))}
+        </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onSetExerciseIndex(currentExerciseIndex + 1)}
+          disabled={isLast}
+          className="text-zinc-500 hover:text-white disabled:opacity-20 gap-2 font-black uppercase text-[10px] tracking-widest"
+        >
+          Siguiente
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   )

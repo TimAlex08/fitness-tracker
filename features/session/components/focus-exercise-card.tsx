@@ -8,6 +8,14 @@ import { SimplifiedExerciseForm } from "@/features/session/components/simplified
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import * as React from "react"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 
 type FocusExerciseCardProps = {
   routineExercise: RoutineExerciseWithDetails
@@ -19,6 +27,7 @@ type FocusExerciseCardProps = {
   onComplete: (actualValue?: number) => void
   className?: string
   isLastExercise?: boolean
+  sessionProgress?: number // Porcentaje de progreso de la sesión 0-100
 }
 
 const MUSCLE_COLOR: Record<string, string> = {
@@ -49,187 +58,142 @@ export function FocusExerciseCard({
   onComplete,
   className,
   isLastExercise,
+  sessionProgress = 0,
 }: FocusExerciseCardProps) {
-  const [showFullDescription, setShowFullDescription] = React.useState(false)
   const isIsometric = !re.reps && !re.exercise.defaultReps
   const muscleColor = MUSCLE_COLOR[re.exercise.muscleGroup] ?? MUSCLE_COLOR.FULL_BODY
 
   return (
     <div
       className={cn(
-        "flex flex-col w-full max-w-lg mx-auto bg-zinc-950 border border-zinc-900 rounded-[2.5rem] overflow-hidden shadow-2xl h-full",
-        state.completed && "border-emerald-500/30 shadow-emerald-500/5",
+        "flex flex-col w-full h-full bg-zinc-950 overflow-hidden relative",
+        state.completed && "bg-emerald-950/5",
         className
       )}
     >
-      {/* Visual Area */}
-      <div className="relative h-48 sm:h-56 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
+      {/* ─── Visual Area (Top 50%) ───────────────────────────────────────────── */}
+      <div className="relative h-1/2 bg-zinc-900 flex items-center justify-center overflow-hidden shrink-0">
         {re.exercise.imageUrl ? (
           <Image
             src={re.exercise.imageUrl}
             alt={re.exercise.name}
             fill
-            className="object-cover opacity-60"
+            className="object-cover opacity-70"
             priority
           />
         ) : (
-          <div className="flex flex-col items-center gap-2 text-zinc-700">
-            <PlayCircle className="h-10 w-10" />
-            <span className="text-[10px] uppercase tracking-widest font-black">Sin video disponible</span>
+          <div className="flex flex-col items-center gap-2 text-zinc-800">
+            <PlayCircle className="h-16 w-16" />
+            <span className="text-xs uppercase tracking-[0.3em] font-black">Video No Disponible</span>
           </div>
         )}
 
-        {/* Floating status */}
-        <div className="absolute top-6 right-6 z-10">
-          {state.completed ? (
-            <div className="bg-emerald-500 text-black rounded-full p-2 shadow-lg animate-in zoom-in duration-300">
+        {/* Floating Overlays */}
+        <div className="absolute top-4 left-4 z-20">
+          <Badge variant="outline" className={cn("bg-zinc-950/60 backdrop-blur-md border border-zinc-700/50 uppercase tracking-[0.2em] text-[10px] font-black px-2 py-0.5", muscleColor)}>
+            {re.block === "warmup" ? "Calentamiento" : re.block === "cooldown" ? "Calma" : re.exercise.muscleGroup}
+          </Badge>
+        </div>
+
+        <div className="absolute top-4 right-4 z-20 flex gap-2">
+          <Sheet>
+            <SheetTrigger asChild>
+              <button className="h-10 w-10 rounded-full bg-zinc-950/60 backdrop-blur-md border border-zinc-700/50 flex items-center justify-center text-zinc-400 hover:text-white transition-colors">
+                <Info className="h-5 w-5" />
+              </button>
+            </SheetTrigger>
+            <SheetContent side="right" className="bg-zinc-950 border-zinc-900 text-white w-[85%] sm:w-[400px]">
+              <SheetHeader className="text-left">
+                <SheetTitle className="text-2xl font-black italic uppercase text-white">{re.exercise.name}</SheetTitle>
+                <SheetDescription className="text-zinc-500 font-medium">
+                  Información detallada y técnica
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-8 space-y-6">
+                <div>
+                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-emerald-500 font-black mb-2">Descripción</h4>
+                  <p className="text-zinc-400 text-sm leading-relaxed">{re.exercise.description || "Sin descripción disponible."}</p>
+                </div>
+                {re.exercise.safetyNotes && (
+                  <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-2xl">
+                    <h4 className="text-[10px] uppercase tracking-[0.2em] text-orange-400 font-black mb-2">Notas de Seguridad</h4>
+                    <p className="text-orange-200/70 text-xs leading-relaxed">{re.exercise.safetyNotes}</p>
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-[10px] uppercase tracking-[0.2em] text-zinc-500 font-black mb-2">Equipamiento</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {re.exercise.equipment?.map((eq) => (
+                      <Badge key={eq} variant="secondary" className="bg-zinc-900 text-zinc-400 border-zinc-800 uppercase text-[9px]">
+                        {eq}
+                      </Badge>
+                    ))}
+                    {(!re.exercise.equipment || re.exercise.equipment.length === 0) && (
+                      <span className="text-[10px] text-zinc-600 font-medium">No requiere equipo especial</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+          
+          {state.completed && (
+            <div className="bg-emerald-500 text-black rounded-full h-10 w-10 flex items-center justify-center shadow-lg shadow-emerald-500/20 animate-in zoom-in duration-300">
               <CheckCircle2 className="h-6 w-6" />
-            </div>
-          ) : (
-            <div className="bg-zinc-950/80 backdrop-blur-md border border-zinc-800 text-zinc-400 rounded-full p-2.5">
-              <Circle className="h-5 w-5" />
             </div>
           )}
         </div>
 
-        {/* Block Badge */}
-        <div className="absolute bottom-6 left-6 z-10">
-          <Badge variant="outline" className={cn("bg-zinc-950/80 backdrop-blur-md border border-zinc-700 uppercase tracking-[0.2em] text-[10px] font-black px-3 py-1", muscleColor)}>
-            {re.block === "warmup" ? "Calentamiento" : re.block === "cooldown" ? "Vuelta a la calma" : re.exercise.muscleGroup}
-          </Badge>
+        {/* Title Overlay */}
+        <div className="absolute bottom-6 left-6 z-20 max-w-[80%]">
+          <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight italic uppercase drop-shadow-2xl">
+            {re.exercise.name}
+          </h2>
         </div>
         
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80" />
+        
+        {/* Border / Progress bar at junction */}
+        <div className="absolute bottom-0 left-0 w-full h-[3px] bg-zinc-900 z-30">
+          <div 
+            className="h-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all duration-700"
+            style={{ width: `${sessionProgress}%` }}
+          />
+        </div>
       </div>
 
-      {/* Content Area */}
-      <div className="p-6 lg:p-8 flex-1 flex flex-col min-h-0 overflow-y-auto scrollbar-hide">
-        <div className="mb-6 shrink-0">
-          <h2 className="text-3xl lg:text-4xl font-black text-white mb-2 leading-tight tracking-tight italic uppercase">
-            {re.exercise.name}
-          </h2>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-emerald-400 font-black uppercase tracking-tight bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/20 text-sm">
-              {formatTarget(re)}
-            </span>
-            {re.tempo && (
-              <span className="text-zinc-500 font-bold text-xs uppercase tracking-widest">Tempo {re.tempo}</span>
-            )}
+      {/* ─── Control Area (Bottom 50%) ────────────────────────────────────────── */}
+      <div className="h-1/2 flex flex-col relative">
+        {!state.completed ? (
+          <SimplifiedExerciseForm
+            isIsometric={isIsometric}
+            targetDuration={re.durationSec ?? re.exercise.defaultDurationSec}
+            targetReps={re.reps ?? re.exercise.defaultReps}
+            targetString={formatTarget(re)}
+            tempo={re.tempo}
+            submitting={state.submitting}
+            rpeActual={state.rpeActual}
+            painDuring={state.painDuring}
+            onRpe={onRpe}
+            onPain={onPain}
+            onComplete={onComplete}
+            isLastExercise={isLastExercise}
+          />
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center px-8 animate-in fade-in zoom-in-95 duration-500">
+            <div className="h-24 w-24 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-emerald-500/20 relative">
+              <CheckCircle2 className="h-12 w-12 text-emerald-400" />
+              <div className="absolute inset-0 rounded-full border border-emerald-500/30 animate-ping opacity-20" />
+            </div>
+            <h4 className="text-3xl font-black text-white mb-2 tracking-tight uppercase italic">¡Completado!</h4>
+            <p className="text-zinc-500 text-sm font-medium leading-relaxed">
+              Ejercicio registrado. Desliza para el siguiente o usa el botón de finalizar.
+            </p>
           </div>
-
-          {re.exercise.description && (
-            <div className="relative">
-              <p className={cn(
-                "text-sm text-zinc-400 leading-relaxed font-medium transition-all duration-300",
-                !showFullDescription && "line-clamp-2"
-              )}>
-                {re.exercise.description}
-              </p>
-              <button 
-                onClick={() => setShowFullDescription(!showFullDescription)}
-                className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-500 mt-1 hover:text-emerald-400 transition-colors"
-              >
-                {showFullDescription ? (
-                  <>Ver menos <ChevronUp className="h-3 w-3" /></>
-                ) : (
-                  <>Ver más <ChevronDown className="h-3 w-3" /></>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 flex flex-col justify-center gap-8 py-4">
-          {!state.completed ? (
-            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Inputs 1-10 Rows */}
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center px-1">
-                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">Esfuerzo (RPE)</p>
-                    {state.rpeActual && <span className="text-emerald-400 font-black text-xs">{state.rpeActual}/10</span>}
-                  </div>
-                  <div className="flex justify-between gap-1.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => onRpe(n)}
-                        className={cn(
-                          "flex-1 h-10 rounded-xl text-[10px] font-black transition-all",
-                          state.rpeActual === n 
-                            ? "bg-emerald-500 text-black scale-110 shadow-lg shadow-emerald-500/20" 
-                            : "bg-zinc-900 text-zinc-600 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-400"
-                        )}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center px-1">
-                    <p className="text-[10px] text-zinc-600 font-black uppercase tracking-[0.2em]">Molestia / Dolor</p>
-                    {state.painDuring > 0 && <span className="text-orange-400 font-black text-xs">{state.painDuring}/10</span>}
-                  </div>
-                  <div className="flex justify-between gap-1.5">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => onPain(n)}
-                        className={cn(
-                          "flex-1 h-10 rounded-xl text-[10px] font-black transition-all",
-                          state.painDuring === n 
-                            ? "bg-orange-500 text-black scale-110 shadow-lg shadow-orange-500/20" 
-                            : "bg-zinc-900 text-zinc-600 border border-zinc-800 hover:bg-zinc-800 hover:text-zinc-400"
-                        )}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Main Action */}
-              <SimplifiedExerciseForm
-                isIsometric={isIsometric}
-                targetDuration={re.durationSec ?? re.exercise.defaultDurationSec}
-                targetReps={re.reps ?? re.exercise.defaultReps}
-                submitting={state.submitting}
-                onComplete={onComplete}
-                isLastExercise={isLastExercise}
-              />
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center animate-in fade-in zoom-in-95 duration-500">
-              <div className="h-24 w-24 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mb-6 shadow-inner shadow-emerald-500/20 relative">
-                <CheckCircle2 className="h-12 w-12 text-emerald-400" />
-                <div className="absolute inset-0 rounded-full border border-emerald-500/30 animate-ping opacity-20" />
-              </div>
-              <h4 className="text-2xl font-black text-white mb-2 tracking-tight uppercase italic">¡Excelente trabajo!</h4>
-              <p className="text-zinc-500 text-sm font-medium max-w-[240px] mx-auto leading-relaxed">
-                Ejercicio completado y registrado con éxito. Desliza para el siguiente.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Footer Info */}
-        <div className="mt-8 pt-6 border-t border-zinc-900/50 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2 text-zinc-600">
-            <Info className="h-4 w-4" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Información de seguridad</span>
-          </div>
-          {re.exercise.safetyNotes && (
-            <button className="text-[10px] text-emerald-500 font-black uppercase tracking-[0.2em] border-b border-emerald-500/30 pb-0.5">
-              Ver notas
-            </button>
-          )}
-        </div>
+        )}
       </div>
     </div>
   )
 }
+

@@ -15,7 +15,6 @@ import { calculateCompletionStatus, parseRepsPerSet } from "@/features/session/s
 
 export type SessionPhase = "idle" | "training" | "post-session" | "done"
 export type SessionMode = "structured" | "free"
-export type ViewMode = "list" | "focus"
 
 type UseSessionStateParams = {
   routine: RoutineWithExercises | null
@@ -75,7 +74,6 @@ function toVirtualRoutineExercise(
 
 export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
   const [mode, setMode] = useState<SessionMode>("structured")
-  const [viewMode, setViewMode] = useState<ViewMode>("focus") // Default to focus for better mobile experience
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0)
   const [showPicker, setShowPicker] = useState(false)
   const [freeExercises, setFreeExercises] = useState<RoutineExerciseWithDetails[]>([])
@@ -190,14 +188,12 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
   const dismissRestTimer = useCallback(() => {
     setRestTimer((t) => ({ ...t, visible: false }))
     
-    // Auto-advance in Focus Mode
-    if (viewMode === "focus") {
-      const total = mode === "structured" ? (routine?.exercises.length ?? 0) : freeExercises.length
-      if (currentExerciseIndex < total - 1) {
-        setCurrentExerciseIndex(prev => prev + 1)
-      }
+    // Auto-advance
+    const total = mode === "structured" ? (routine?.exercises.length ?? 0) : freeExercises.length
+    if (currentExerciseIndex < total - 1) {
+      setCurrentExerciseIndex(prev => prev + 1)
     }
-  }, [viewMode, currentExerciseIndex, mode, routine, freeExercises])
+  }, [currentExerciseIndex, mode, routine, freeExercises])
 
   async function handleFinishSession(postData: PostSessionData) {
     const routineId = mode === "structured" ? routine?.id : undefined
@@ -221,8 +217,6 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
 
   return {
     mode,
-    viewMode,
-    setViewMode,
     currentExerciseIndex,
     setCurrentExerciseIndex,
     sessionPhase,
