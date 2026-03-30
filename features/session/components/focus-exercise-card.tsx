@@ -1,5 +1,9 @@
 "use client"
 
+import { Badge } from "@/components/ui/badge"
+import { CheckCircle2, Circle, Info, PlayCircle } from "lucide-react"
+import type { RoutineExerciseWithDetails } from "@/types"
+import type { ExerciseState } from "@/features/session/components/exercise-session-card"
 import { SimplifiedExerciseForm } from "@/features/session/components/simplified-exercise-form"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -16,6 +20,16 @@ type FocusExerciseCardProps = {
   isLastExercise?: boolean
 }
 
+const MUSCLE_COLOR: Record<string, string> = {
+  CHEST: "bg-blue-500/15 text-blue-400 border-blue-500/30",
+  BACK: "bg-purple-500/15 text-purple-400 border-purple-500/30",
+  LEGS: "bg-green-500/15 text-green-400 border-green-500/30",
+  SHOULDERS: "bg-orange-500/15 text-orange-400 border-orange-500/30",
+  CORE: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+  MOBILITY: "bg-teal-500/15 text-teal-400 border-teal-500/30",
+  FULL_BODY: "bg-zinc-500/15 text-zinc-400 border-zinc-500/30",
+}
+
 const PAIN_COLORS = [
   "bg-emerald-500 text-white",
   "bg-green-500 text-white",
@@ -24,6 +38,16 @@ const PAIN_COLORS = [
   "bg-red-500 text-white",
   "bg-red-700 text-white",
 ]
+
+function formatTarget(re: RoutineExerciseWithDetails): string {
+  const sets = re.sets ?? re.exercise.defaultSets
+  const reps = re.reps ?? re.exercise.defaultReps
+  const dur = re.durationSec ?? re.exercise.defaultDurationSec
+  if (!sets) return "—"
+  if (reps) return `${sets} × ${reps} reps`
+  if (dur) return `${sets} × ${dur}s`
+  return `${sets} series`
+}
 
 export function FocusExerciseCard({
   routineExercise: re,
