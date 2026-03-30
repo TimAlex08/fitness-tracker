@@ -9,6 +9,7 @@ import type {
 } from "@/types"
 import type { ExerciseState, SetLog } from "@/features/session/components/exercise-session-card"
 import type { PostSessionData } from "@/features/session/components/post-session-form"
+import { calculateCompletionStatus, parseRepsPerSet } from "@/features/session/services/session.service"
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -34,15 +35,7 @@ function initExerciseState(
   }
 ): ExerciseState {
   const sets: SetLog[] = Array.from({ length: numSets }, (_, i) => {
-    let reps = 0
-    if (existingLog?.repsPerSet) {
-      try {
-        const parsed = JSON.parse(existingLog.repsPerSet)
-        if (Array.isArray(parsed)) reps = parsed[i] ?? 0
-      } catch (e) {
-        console.warn("Error parsing repsPerSet", e)
-      }
-    }
+    const parsedReps = parseRepsPerSet(existingLog?.repsPerSet); let reps = parsedReps[i] ?? 0
     return { reps }
   })
   return {
@@ -199,8 +192,7 @@ export function useSessionState({ routine, dailyLog }: UseSessionStateParams) {
     if (!dailyLogId) await ensureDailyLog(routineId)
     const completedCount = Object.values(exerciseStates).filter((s) => s.completed).length
     const total = mode === "structured" ? (routine?.exercises.length ?? 0) : freeExercises.length
-    const status =
-      completedCount === 0 ? "SKIPPED" : completedCount === total ? "COMPLETED" : "PARTIAL"
+    const status = calculateCompletionStatus(completedCount, total)
     await fetch("/api/daily-log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
