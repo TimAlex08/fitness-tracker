@@ -82,7 +82,6 @@ export default async function ExercisesPage({ searchParams }: PageProps) {
       ? (sort as ExerciseSort)
       : undefined
 
-  const allExercises = await exerciseRepo.findAll()
 
   return (
     <div className="px-6 pb-8">
@@ -91,7 +90,7 @@ export default async function ExercisesPage({ searchParams }: PageProps) {
         <p className="text-sm text-zinc-400">
           Ejercicios del catálogo con parámetros de trabajo y notas de seguridad.
         </p>
-        <ExerciseActions allExercises={allExercises} />
+        <ExerciseActions />
       </div>
 
       {/* Filtros */}

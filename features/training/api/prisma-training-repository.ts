@@ -1,20 +1,12 @@
+// features/training/api/prisma-training-repository.ts
 import { prisma } from "@/lib/prisma"
-import { SessionType } from "@prisma/client"
-import type { WeekData, MonthData, YearData, WeekDay, MonthDay, YearDay, DayStatus } from "@/features/training/types/training.types"
-import type { TrainingRepository } from "./training-repository"
 import { calculateStreak } from "../utils/training-grid"
+import type {
+  TrainingRepository,
+} from "./training-repository"
+import type { WeekData, WeekDay, MonthData, MonthDay, YearData, YearDay, DayStatus } from "../types/training.types"
 
-// ─── Helpers de fecha ─────────────────────────────────────────────────────────
-
-const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-
-function jsDayToName(jsDay: number): string {
-  return DAY_NAMES[jsDay]
-}
-
-function jsDayToWeekIndex(jsDay: number): number {
-  return jsDay === 0 ? 6 : jsDay - 1
-}
+// ─── Date helpers ─────────────────────────────────────────────────────────────
 
 function toDateString(date: Date): string {
   return date.toISOString().split("T")[0]
@@ -41,71 +33,13 @@ function isLeapYear(year: number): boolean {
   return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
 }
 
-// ─── Rutinas del programa activo ──────────────────────────────────────────────
-
-interface RoutineEntry {
-  id: string
-  name: string
-  dayOfWeek: string
-  sessionType: SessionType
-  durationMin: number | null
-  exerciseCount: number
-  rpeTarget: string | null
-  exercises: { name: string; sets: number | null; reps: number | null }[]
+function jsDayToWeekIndex(jsDay: number): number {
+  return jsDay === 0 ? 6 : jsDay - 1
 }
 
-async function getActiveRoutines(): Promise<RoutineEntry[]> {
-  const program = await prisma.program.findFirst({
-    where: { isActive: true },
-    include: {
-      phases: {
-        orderBy: { order: "asc" },
-        take: 1,
-        include: {
-          programDays: {
-            include: {
-              routine: {
-                include: {
-                  _count: { select: { exercises: true } },
-                  exercises: {
-                    include: { exercise: { select: { name: true } } },
-                    orderBy: { order: "asc" },
-                    take: 3
-                  }
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  })
-
-  if (!program?.phases[0]) return []
-
-  const phase = program.phases[0]
-  return phase.programDays.map((pd) => ({
-    id: pd.routine.id,
-    name: pd.routine.name,
-    dayOfWeek: pd.dayOfWeek,
-    sessionType: pd.routine.sessionType,
-    durationMin: pd.routine.durationMin,
-    exerciseCount: pd.routine._count.exercises,
-    rpeTarget: phase.rpeTarget,
-    exercises: pd.routine.exercises.map(re => ({
-      name: re.exercise.name,
-      sets: re.sets,
-      reps: re.reps
-    }))
-  }))
-}
-
-function routineForDay(routines: RoutineEntry[], jsDay: number): RoutineEntry | null {
-  const dayName = jsDayToName(jsDay)
-  return routines.find((r) => r.dayOfWeek === dayName) ?? null
-}
-
-// ─── Implementación ───────────────────────────────────────────────────────────
+// ─── NOTE ─────────────────────────────────────────────────────────────────────
+// This stub returns daily logs only (no scheduled routines from CalendarService).
+// CalendarService integration happens in Plan B.
 
 export class PrismaTrainingRepository implements TrainingRepository {
   async getWeekData(date: Date, userId: string): Promise<WeekData> {
@@ -114,14 +48,11 @@ export class PrismaTrainingRepository implements TrainingRepository {
     sunday.setDate(sunday.getDate() + 6)
     sunday.setHours(23, 59, 59, 999)
 
-    const [routines, dailyLogs] = await Promise.all([
-      getActiveRoutines(),
-      prisma.dailyLog.findMany({
-        where: { userId, date: { gte: monday, lte: sunday } },
-        include: { _count: { select: { exerciseLogs: true } } },
-        orderBy: { date: "asc" },
-      }),
-    ])
+    const dailyLogs = await prisma.dailyLog.findMany({
+      where: { userId, date: { gte: monday, lte: sunday } },
+      include: { routine: true, _count: { select: { exerciseLogs: true } } },
+      orderBy: { date: "asc" },
+    })
 
     const todayStr = toDateString(new Date())
     const days: WeekDay[] = []
@@ -130,34 +61,20 @@ export class PrismaTrainingRepository implements TrainingRepository {
       const dayDate = new Date(monday)
       dayDate.setDate(monday.getDate() + i)
       const dateStr = toDateString(dayDate)
-      const jsDay = dayDate.getDay()
-      const routine = routineForDay(routines, jsDay)
-      const log = dailyLogs.find((l) => toDateString(l.date) === dateStr) ?? null
+      const logsForDay = dailyLogs.filter((l) => toDateString(l.date) === dateStr)
 
       days.push({
         date: dateStr,
-        dayOfWeek: jsDayToWeekIndex(jsDay),
+        dayOfWeek: jsDayToWeekIndex(dayDate.getDay()),
         isToday: dateStr === todayStr,
-        isRest: !routine,
-        routine: routine
-          ? {
-              id: routine.id,
-              name: routine.name,
-              exerciseCount: routine.exerciseCount,
-              estimatedDuration: routine.durationMin,
-              rpeTarget: routine.rpeTarget,
-              sessionType: routine.sessionType,
-              exercises: routine.exercises,
-            }
-          : null,
-        dailyLog: log
-          ? {
-              status: log.status,
-              rpeActual: log.overallRpe,
-              durationMin: log.durationMin,
-              exercisesCompleted: log._count.exerciseLogs,
-            }
-          : null,
+        isRest: logsForDay.length === 0,
+        routine: null, // TODO(Plan B): CalendarService
+        dailyLog: logsForDay[0] ? {
+          status: logsForDay[0].status,
+          rpeActual: logsForDay[0].overallRpe,
+          durationMin: logsForDay[0].durationMin,
+          exercisesCompleted: logsForDay[0]._count.exerciseLogs,
+        } : null,
       })
     }
 
@@ -173,14 +90,11 @@ export class PrismaTrainingRepository implements TrainingRepository {
     const firstDay = new Date(year, month - 1, 1)
     const lastDay = new Date(year, month, 0, 23, 59, 59, 999)
 
-    const [routines, dailyLogs] = await Promise.all([
-      getActiveRoutines(),
-      prisma.dailyLog.findMany({
-        where: { userId, date: { gte: firstDay, lte: lastDay } },
-        select: { date: true, status: true },
-        orderBy: { date: "asc" },
-      }),
-    ])
+    const dailyLogs = await prisma.dailyLog.findMany({
+      where: { userId, date: { gte: firstDay, lte: lastDay } },
+      include: { routine: true },
+      orderBy: { date: "asc" },
+    })
 
     const todayStr = toDateString(new Date())
     const daysInMonth = lastDay.getDate()
@@ -189,46 +103,45 @@ export class PrismaTrainingRepository implements TrainingRepository {
     for (let d = 1; d <= daysInMonth; d++) {
       const dayDate = new Date(year, month - 1, d)
       const dateStr = toDateString(dayDate)
-      const routine = routineForDay(routines, dayDate.getDay())
-      const log = dailyLogs.find((l) => toDateString(l.date) === dateStr)
+      const logsForDay = dailyLogs.filter((l) => toDateString(l.date) === dateStr)
 
-      let status: DayStatus
-      if (!routine) {
-        status = "REST"
-      } else if (log) {
-        status = log.status
-      } else {
-        status = "PENDING"
-      }
+      const status: DayStatus =
+        logsForDay.length === 0
+          ? "REST"
+          : (logsForDay[0].status as DayStatus)
 
-      days.push({ date: dateStr, status, isRest: !routine })
+      days.push({
+        date: dateStr,
+        status,
+        isRest: status === "REST",
+      })
     }
 
     const pastDays = days.filter((d) => d.date <= todayStr)
-    const completedDays = pastDays.filter(
-      (d) => d.status === "COMPLETED" || d.isRest
-    ).length
-    const totalPastDays = pastDays.length
-    const adherence =
-      totalPastDays > 0 ? Math.round((completedDays / totalPastDays) * 100) : 0
+    const completedDays = pastDays.filter((d) => d.status === "COMPLETED").length
+    const { current: currentStreak } = calculateStreak(
+      days.map((d) => ({ date: d.date, status: d.status, isRest: d.isRest }))
+    )
 
-    const { current: currentStreak } = calculateStreak(days)
-
-    return { days, currentStreak, adherence, completedDays, totalPastDays }
+    return {
+      days,
+      currentStreak,
+      adherence:
+        pastDays.length > 0 ? Math.round((completedDays / pastDays.length) * 100) : 0,
+      completedDays,
+      totalPastDays: pastDays.length,
+    }
   }
 
   async getYearData(year: number, userId: string): Promise<YearData> {
     const firstDay = new Date(year, 0, 1)
     const lastDay = new Date(year, 11, 31, 23, 59, 59, 999)
 
-    const [routines, dailyLogs] = await Promise.all([
-      getActiveRoutines(),
-      prisma.dailyLog.findMany({
-        where: { userId, date: { gte: firstDay, lte: lastDay } },
-        select: { date: true, status: true },
-        orderBy: { date: "asc" },
-      }),
-    ])
+    const dailyLogs = await prisma.dailyLog.findMany({
+      where: { userId, date: { gte: firstDay, lte: lastDay } },
+      select: { date: true, status: true },
+      orderBy: { date: "asc" },
+    })
 
     const todayStr = toDateString(new Date())
     const daysInYear = isLeapYear(year) ? 366 : 365
@@ -237,29 +150,17 @@ export class PrismaTrainingRepository implements TrainingRepository {
     for (let d = 0; d < daysInYear; d++) {
       const dayDate = new Date(year, 0, d + 1)
       const dateStr = toDateString(dayDate)
-      const routine = routineForDay(routines, dayDate.getDay())
       const log = dailyLogs.find((l) => toDateString(l.date) === dateStr)
-
-      let status: DayStatus
-      if (!routine) {
-        status = "REST"
-      } else if (log) {
-        status = log.status
-      } else {
-        status = "PENDING"
-      }
-
-      days.push({ date: dateStr, status, isRest: !routine })
+      days.push({ date: dateStr, status: (log?.status ?? "REST") as DayStatus, isRest: !log })
     }
 
     const totalSessions = days.filter(
       (d) => d.status === "COMPLETED" && d.date <= todayStr
     ).length
-    const { current: currentStreak, max: maxStreak } = calculateStreak(days)
+    const { current: currentStreak, max: maxStreak } = calculateStreak(
+      days.map((d) => ({ date: d.date, status: d.status, isRest: d.isRest }))
+    )
 
-    return {
-      days,
-      summary: { totalSessions, currentStreak, maxStreak },
-    }
+    return { days, summary: { totalSessions, currentStreak, maxStreak } }
   }
 }

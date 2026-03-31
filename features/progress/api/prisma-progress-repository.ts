@@ -34,8 +34,6 @@ function getWeekNumber(date: Date): number {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
 }
 
-const DAY_NAMES = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-
 // ─── Repositorio ──────────────────────────────────────────────────────────────
 
 export class PrismaProgressRepository implements ProgressRepository {
@@ -58,31 +56,6 @@ export class PrismaProgressRepository implements ProgressRepository {
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
 
-    // Fetch active program's days to know how many training days there are
-    const program = await prisma.program.findFirst({
-      where: { isActive: true, userId },
-      include: {
-        phases: {
-          orderBy: { order: "asc" },
-          take: 1,
-          include: { programDays: { select: { dayOfWeek: true } } },
-        },
-      },
-    })
-
-    const trainingDays = new Set(program?.phases[0]?.programDays.map((d) => d.dayOfWeek) ?? [])
-
-    // Count training days that have already passed this month (including today)
-    const todayStr = toDateString(now)
-    let scheduledTrainingDaysPassed = 0
-    const daysInMonth = monthEnd.getDate()
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dayDate = new Date(now.getFullYear(), now.getMonth(), d)
-      if (toDateString(dayDate) > todayStr) break
-      const dayName = DAY_NAMES[dayDate.getDay()]
-      if (trainingDays.has(dayName)) scheduledTrainingDaysPassed++
-    }
-
     const [logs, rpeResult] = await Promise.all([
       prisma.dailyLog.findMany({
         where: { userId, date: { gte: monthStart, lte: monthEnd } },
@@ -100,12 +73,9 @@ export class PrismaProgressRepository implements ProgressRepository {
     ])
 
     const sessionsThisMonth = logs.filter((l) => l.status === "COMPLETED").length
-    const adherencePercent =
-      scheduledTrainingDaysPassed > 0
-        ? Math.round((sessionsThisMonth / scheduledTrainingDaysPassed) * 100)
-        : 0
+    const adherencePercent = 0 // TODO(Plan F): Calculate from CalendarService
 
-    // Streak: use year data to compute
+    // Streak
     const yearStart = new Date(now.getFullYear(), 0, 1)
     const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999)
     const yearLogs = await prisma.dailyLog.findMany({
@@ -116,11 +86,9 @@ export class PrismaProgressRepository implements ProgressRepository {
     const days = Array.from({ length: 365 }, (_, i) => {
       const d = new Date(now.getFullYear(), 0, i + 1)
       const dateStr = toDateString(d)
-      const dayName = DAY_NAMES[d.getDay()]
-      const isRest = !trainingDays.has(dayName)
       const log = yearLogs.find((l) => toDateString(l.date) === dateStr)
-      const status: DayStatus = isRest ? "REST" : log ? (log.status as DayStatus) : "PENDING"
-      return { date: dateStr, status, isRest }
+      const status: DayStatus = log ? (log.status as DayStatus) : "PENDING"
+      return { date: dateStr, status, isRest: status === "REST" }
     })
 
     const { current: streak } = calculateStreak(days)
@@ -197,7 +165,6 @@ export class PrismaProgressRepository implements ProgressRepository {
     const eightWeeksAgo = new Date()
     eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56)
 
-    // Ejercicios usados recientemente por el usuario
     const logs = await prisma.exerciseLog.findMany({
       where: {
         dailyLog: {
@@ -214,7 +181,6 @@ export class PrismaProgressRepository implements ProgressRepository {
       orderBy: { createdAt: "desc" },
     })
 
-    // Group by exercise
     const byExercise = new Map<string, typeof logs>()
     for (const log of logs) {
       const key = log.exercise.id
@@ -224,11 +190,10 @@ export class PrismaProgressRepository implements ProgressRepository {
 
     const progressions: ExerciseProgression[] = []
     for (const [exerciseId, exerciseLogs] of byExercise) {
-      // Only show exercises with at least 2 sessions (to show progression)
       const uniqueDates = [...new Set(exerciseLogs.map((l) => toDateString(l.dailyLog!.date)))]
       if (uniqueDates.length < 2) continue
 
-      const latestLogs = exerciseLogs.slice(0, lastN * 3) // take a bit more, then dedupe by date
+      const latestLogs = exerciseLogs.slice(0, lastN * 3)
       const byDate = new Map<string, (typeof logs)[0]>()
       for (const log of latestLogs) {
         const d = toDateString(log.dailyLog!.date)
@@ -240,7 +205,7 @@ export class PrismaProgressRepository implements ProgressRepository {
         .slice(0, lastN)
         .map(([date, log]) => ({
           date,
-          reps: Array.isArray(log.repsPerSet) ? (log.repsPerSet as number[]) : [],
+          reps: typeof log.repsPerSet === 'string' ? JSON.parse(log.repsPerSet) : (log.repsPerSet || []),
           rpeActual: log.rpeActual,
           painDuring: log.painDuring,
           formQuality: log.formQuality,
@@ -254,7 +219,6 @@ export class PrismaProgressRepository implements ProgressRepository {
       })
     }
 
-    // Sort by most recently used
     return progressions.slice(0, 6)
   }
 
@@ -303,25 +267,24 @@ export class PrismaProgressRepository implements ProgressRepository {
   // ─── Fase activa ───────────────────────────────────────────────────────────
 
   private async getActivePhase(userId: string): Promise<PhaseInfo | null> {
-    const program = await prisma.program.findFirst({
-      where: { isActive: true, userId },
+    const collection = await prisma.collection.findFirst({
+      where: { userId, isActive: true },
       include: {
-        phases: {
-          orderBy: { order: "asc" },
+        programs: {
+          where: { isActive: true },
           take: 1,
-          select: { name: true, rpeTarget: true, weekStart: true, weekEnd: true },
         },
       },
     })
 
-    if (!program?.phases[0]) return null
+    const program = collection?.programs[0]
+    if (!program) return null
 
-    const phase = program.phases[0]
     return {
-      name: phase.name,
-      rpeTarget: phase.rpeTarget,
-      weekStart: phase.weekStart,
-      weekEnd: phase.weekEnd,
+      name: program.name,
+      rpeTarget: program.rpeTarget || "—",
+      weekStart: 1, // TODO(Plan F): Calculate from startDate
+      weekEnd: 4,
     }
   }
 }

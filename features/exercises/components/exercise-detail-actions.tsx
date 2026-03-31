@@ -16,12 +16,10 @@ import type { Exercise } from "@/types"
 
 type ExerciseDetailActionsProps = {
   exercise: Exercise
-  allExercises: Exercise[]
 }
 
 export function ExerciseDetailActions({
   exercise,
-  allExercises,
 }: ExerciseDetailActionsProps) {
   const router = useRouter()
   const [editOpen, setEditOpen] = useState(false)
@@ -83,7 +81,6 @@ export function ExerciseDetailActions({
         open={editOpen}
         onOpenChange={setEditOpen}
         exercise={exercise}
-        allExercises={allExercises}
       />
     </>
   )

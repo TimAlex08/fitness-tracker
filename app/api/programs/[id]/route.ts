@@ -20,18 +20,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const { id } = await params
 
     const program = await prisma.program.findUnique({
-      where: { id, userId: user.id },
+      where: { id, collection: { userId: user.id } },
       include: {
-        phases: {
-          orderBy: { order: "asc" },
+        programRoutines: {
           include: {
-            programDays: {
-              orderBy: { dayOfWeek: "asc" },
-              include: {
-                routine: { select: { id: true, name: true, sessionType: true, durationMin: true } },
-                overrides: true,
-              },
-            },
+            routine: true,
+            overrides: true,
           },
         },
       },
@@ -58,17 +52,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 })
     }
 
-    // Verificar que el programa pertenece al usuario
-    const existing = await prisma.program.findUnique({ where: { id, userId: user.id } })
+    // Verificar que el programa pertenece al usuario vía collection
+    const existing = await prisma.program.findUnique({ 
+      where: { id, collection: { userId: user.id } } 
+    })
     if (!existing) return apiError("Programa no encontrado", 404)
 
     const data = parsed.data
 
     const program = await prisma.$transaction(async (tx) => {
-      // Si se activa este programa, desactivar los demás
+      // Si se activa este programa, desactivar los demás de la misma colección
       if (data.isActive === true) {
         await tx.program.updateMany({
-          where: { userId: user.id, isActive: true, id: { not: id } },
+          where: { collectionId: existing.collectionId, isActive: true, id: { not: id } },
           data: { isActive: false },
         })
       }
@@ -97,7 +93,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
     const { id } = await params
 
-    const existing = await prisma.program.findUnique({ where: { id, userId: user.id } })
+    const existing = await prisma.program.findUnique({ 
+      where: { id, collection: { userId: user.id } } 
+    })
     if (!existing) return apiError("Programa no encontrado", 404)
 
     await prisma.program.delete({ where: { id } })

@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth"
 
@@ -15,9 +16,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <h1 className="text-white font-semibold">Panel de Administración</h1>
             <p className="text-xs text-zinc-500">{user.email}</p>
           </div>
-          <a href="/" className="text-sm text-zinc-400 hover:text-white transition-colors">
+          <Link href="/" className="text-sm text-zinc-400 hover:text-white transition-colors">
             ← Volver a la app
-          </a>
+          </Link>
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>

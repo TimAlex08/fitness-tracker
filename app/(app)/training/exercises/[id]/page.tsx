@@ -6,7 +6,7 @@
 
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { ArrowLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { ExerciseDetailActions } from "@/features/exercises/components/exercise-detail-actions"
@@ -89,15 +89,12 @@ type PageProps = {
 
 export default async function ExerciseDetailPage({ params }: PageProps) {
   const { id } = await params
-  const [exercise, allExercises] = await Promise.all([
-    exerciseRepo.findById(id),
-    exerciseRepo.findAll(),
-  ])
+  const exercise = await exerciseRepo.findById(id)
 
   if (!exercise) notFound()
 
-  const hasLogs = exercise.exerciseLogs.length > 0
-  const hasVariants = exercise.variants.length > 0
+  // TODO(Plan E): Add ExerciseFamily and logs
+  const hasLogs = exercise.exerciseLogs?.length > 0
 
   return (
     <div className="px-6 pb-8 max-w-3xl mx-auto">
@@ -137,7 +134,6 @@ export default async function ExerciseDetailPage({ params }: PageProps) {
 
         <ExerciseDetailActions
           exercise={exercise as Exercise}
-          allExercises={allExercises}
         />
       </div>
 
@@ -189,56 +185,7 @@ export default async function ExerciseDetailPage({ params }: PageProps) {
           </Card>
         </Section>
 
-        {/* Jerarquía */}
-        {(exercise.parent || hasVariants) && (
-          <Section title="Jerarquía de progresión">
-            <div className="space-y-2">
-              {exercise.parent && (
-                <Link
-                  href={`/training/exercises/${exercise.parent.id}`}
-                  className="flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors group"
-                >
-                  <div>
-                    <p className="text-xs text-zinc-500 mb-0.5">Ejercicio base</p>
-                    <p className="text-sm font-medium text-zinc-300 group-hover:text-white">
-                      {exercise.parent.name}
-                    </p>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />
-                </Link>
-              )}
-              {hasVariants && (
-                <div>
-                  <p className="text-xs text-zinc-500 mb-2 px-1">
-                    Variantes ({exercise.variants.length})
-                  </p>
-                  <div className="space-y-1.5">
-                    {exercise.variants.map((v) => (
-                      <Link
-                        key={v.id}
-                        href={`/training/exercises/${v.id}`}
-                        className="flex items-center justify-between px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition-colors group"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`text-xs border ${CATEGORY_COLOR[v.category] ?? ""}`}
-                          >
-                            {CATEGORY_LABEL[v.category] ?? v.category}
-                          </Badge>
-                          <span className="text-sm text-zinc-300 group-hover:text-white">
-                            {v.name}
-                          </span>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-zinc-400" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </Section>
-        )}
+        {/* TODO(Plan E): Add ExerciseFamily hierarchy view here */}
 
         {/* Historial de rendimiento */}
         <Section title="Historial reciente">
@@ -256,7 +203,7 @@ export default async function ExerciseDetailPage({ params }: PageProps) {
                 </thead>
                 <tbody>
                   {exercise.exerciseLogs.map((log) => {
-                    const reps = Array.isArray(log.repsPerSet) ? log.repsPerSet as number[] : []
+                    const reps = Array.isArray(log.repsPerSet) ? log.repsPerSet as unknown as number[] : []
                     const repsStr = reps.length
                       ? `${reps.length} × [${reps.join(", ")}]`
                       : "—"

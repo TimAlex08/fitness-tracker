@@ -1,9 +1,9 @@
-import type { Program } from "@prisma/client"
-import type { CreateProgramBody } from "../schemas/program.schema"
+// features/programs/api/program-repository.ts
+import type { CollectionWithPrograms, ProgramWithRoutines } from "@/types"
 
 export interface ProgramRepository {
-  create(data: CreateProgramBody, userId: string): Promise<Program>
-  findAll(userId: string): Promise<Program[]>
-  findById(id: string, userId: string): Promise<Program | null>
-  delete(id: string): Promise<void>
+  getActiveProgram(userId: string): Promise<ProgramWithRoutines | null>
+  getCollections(userId: string): Promise<CollectionWithPrograms[]>
+  getCollection(id: string, userId: string): Promise<CollectionWithPrograms | null>
+  getProgram(id: string): Promise<ProgramWithRoutines | null>
 }

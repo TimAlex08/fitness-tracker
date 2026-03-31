@@ -1,6 +1,6 @@
 import { unstable_cache, revalidateTag } from "next/cache"
 import { prisma } from "@/lib/prisma"
-import type { Exercise, MuscleGroup, MovementType, ExerciseCategory, JointStress } from "@prisma/client"
+import type { Exercise, MuscleGroup, MovementType, ExerciseCategory, JointStress, FamilyRole } from "@prisma/client"
 import type { ExerciseCardData } from "@/features/exercises/types/exercise.types"
 import {
   ExerciseHasLogsError,
@@ -94,8 +94,7 @@ const cachedFindById = unstable_cache(
     return prisma.exercise.findUnique({
       where: { id },
       include: {
-        parent: true,
-        variants: { orderBy: { difficulty: "asc" } },
+        family: true,
         exerciseLogs: {
           take: 8,
           orderBy: { createdAt: "desc" },
@@ -152,7 +151,9 @@ export class PrismaExerciseRepository implements ExerciseRepository {
         movementType: data.movementType as MovementType,
         category: data.category as ExerciseCategory,
         difficulty: data.difficulty ?? 1,
-        parentId: data.parentId ?? null,
+        familyId: data.familyId ?? null,
+        familyLevel: data.familyLevel ?? null,
+        familyRole: data.familyRole as FamilyRole ?? null,
         defaultSets: data.defaultSets ?? null,
         defaultReps: data.defaultReps ?? null,
         defaultDurationSec: data.defaultDurationSec ?? null,
@@ -183,7 +184,9 @@ export class PrismaExerciseRepository implements ExerciseRepository {
         ...(data.movementType !== undefined && { movementType: data.movementType as MovementType }),
         ...(data.category !== undefined && { category: data.category as ExerciseCategory }),
         ...(data.difficulty !== undefined && { difficulty: data.difficulty }),
-        ...(data.parentId !== undefined && { parentId: data.parentId || null }),
+        ...(data.familyId !== undefined && { familyId: data.familyId || null }),
+        ...(data.familyLevel !== undefined && { familyLevel: data.familyLevel }),
+        ...(data.familyRole !== undefined && { familyRole: data.familyRole as FamilyRole || null }),
         ...(data.defaultSets !== undefined && { defaultSets: data.defaultSets }),
         ...(data.defaultReps !== undefined && { defaultReps: data.defaultReps }),
         ...(data.defaultDurationSec !== undefined && { defaultDurationSec: data.defaultDurationSec }),
@@ -206,10 +209,9 @@ export class PrismaExerciseRepository implements ExerciseRepository {
     if (logCount > 0) {
       throw new ExerciseHasLogsError(logCount)
     }
-    await prisma.exercise.updateMany({
-      where: { parentId: id },
-      data: { parentId: null },
-    })
+    // We don't automatically clear family relations on delete to avoid accidental hierarchy loss,
+    // but Exercise model uses onDelete: SetNull (implied or manual depending on schema).
+    // In our schema familyId is optional.
     await prisma.exercise.delete({ where: { id } })
     revalidateTag(EXERCISES_TAG, "max")
   }

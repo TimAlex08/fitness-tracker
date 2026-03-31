@@ -5,13 +5,8 @@ import { Plus, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ExerciseForm } from "@/features/exercises/components/exercise-form"
 import { ImportExercisesDialog } from "@/features/exercises/components/import-exercises-dialog"
-import type { Exercise } from "@/types"
 
-type ExerciseActionsProps = {
-  allExercises: Exercise[]
-}
-
-export function ExerciseActions({ allExercises }: ExerciseActionsProps) {
+export function ExerciseActions() {
   const [createOpen, setCreateOpen] = useState(false)
   const [importOpen, setImportOpen] = useState(false)
 
@@ -41,7 +36,6 @@ export function ExerciseActions({ allExercises }: ExerciseActionsProps) {
         open={createOpen}
         onOpenChange={setCreateOpen}
         exercise={null}
-        allExercises={allExercises}
       />
 
       <ImportExercisesDialog

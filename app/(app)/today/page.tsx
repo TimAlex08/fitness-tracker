@@ -15,7 +15,7 @@ const exerciseRepo = new PrismaExerciseRepository()
 
 export default async function TodayPage() {
   const user = await getRequiredSession()
-  const [{ routine, dailyLog }, allExercises] = await Promise.all([
+  const [todayData, allExercises] = await Promise.all([
     sessionRepo.getTodayData(user.id),
     exerciseRepo.findAll(),
   ])
@@ -25,6 +25,10 @@ export default async function TodayPage() {
     day: "numeric",
     month: "long",
   })
+
+  // TODO(Plan B): Handle multiple routines. For now, we take the first one.
+  const routine = todayData.entries[0]?.routine ?? null
+  const dailyLog = todayData.dailyLogs[0] ?? null
 
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto">

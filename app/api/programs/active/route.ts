@@ -8,16 +8,15 @@ export async function GET() {
     const user = await getSession()
     if (!user) return apiError("Unauthorized", 401)
 
-    const program = await prisma.program.findFirst({
+    const collection = await prisma.collection.findFirst({
       where: { userId: user.id, isActive: true },
       include: {
-        phases: {
-          orderBy: { order: "asc" },
+        programs: {
+          where: { isActive: true },
           include: {
-            programDays: {
-              orderBy: { dayOfWeek: "asc" },
+            programRoutines: {
               include: {
-                routine: { select: { id: true, name: true, sessionType: true, durationMin: true } },
+                routine: true,
                 overrides: true,
               },
             },
@@ -26,7 +25,9 @@ export async function GET() {
       },
     })
 
-    return NextResponse.json(program ?? null)
+    const program = collection?.programs[0] ?? null
+
+    return NextResponse.json(program)
   } catch (error) {
     console.error("[GET /api/programs/active]", error)
     return apiError("Error obteniendo programa", 500)

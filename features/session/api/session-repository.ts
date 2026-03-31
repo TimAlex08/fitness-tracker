@@ -1,9 +1,10 @@
+// features/session/api/session-repository.ts
 import type { DailyLog, ExerciseLog } from "@prisma/client"
-import type { TodayResponse, RoutineWithExercises, DailyLogWithExercises } from "@/types"
+import type { TodayResponse, DailyLogWithExercises } from "@/types"
 
-export type UpsertDailyLogInput = {
+export interface UpsertDailyLogInput {
   routineId?: string | null
-  isFreeSession?: boolean
+  source?: "SCHEDULED" | "AD_HOC"
   status?: string
   startedAt?: string
   finishedAt?: string
@@ -23,10 +24,10 @@ export type UpsertDailyLogInput = {
   watchActiveMinutes?: number
   watchSpO2?: number
   watchStressScore?: number
-  watchHrZones?: unknown
+  watchHrZones?: number[]
 }
 
-export type UpsertExerciseLogInput = {
+export interface UpsertExerciseLogInput {
   dailyLogId: string
   exerciseId: string
   setsCompleted?: number
@@ -37,7 +38,7 @@ export type UpsertExerciseLogInput = {
   notes?: string
 }
 
-export type UpdateExerciseLogInput = {
+export interface UpdateExerciseLogInput {
   completed?: boolean
   setsCompleted?: number
   repsPerSet?: number[]
@@ -48,10 +49,9 @@ export type UpdateExerciseLogInput = {
 }
 
 export interface SessionRepository {
-  getTodayRoutine(userId: string): Promise<RoutineWithExercises | null>
-  getTodayLog(userId: string): Promise<DailyLogWithExercises | null>
   getTodayData(userId: string): Promise<TodayResponse>
-  upsertTodayLog(userId: string, data: UpsertDailyLogInput): Promise<DailyLog>
-  upsertExerciseLog(data: UpsertExerciseLogInput): Promise<ExerciseLog>
-  updateExerciseLog(id: string, data: UpdateExerciseLogInput): Promise<ExerciseLog>
+  getTodayLog(userId: string): Promise<DailyLogWithExercises | null>
+  upsertTodayLog(userId: string, input: UpsertDailyLogInput): Promise<DailyLog>
+  upsertExerciseLog(input: UpsertExerciseLogInput): Promise<ExerciseLog>
+  updateExerciseLog(id: string, input: UpdateExerciseLogInput): Promise<ExerciseLog>
 }

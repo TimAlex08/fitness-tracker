@@ -15,9 +15,8 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
-  if (token && (pathname === "/login" || pathname === "/register")) {
-    return NextResponse.redirect(new URL("/", request.url))
-  }
+  // Eliminamos la redirección automática de login -> / para evitar bucles si el token es inválido en DB.
+  // La lógica de "ya logueado" se puede manejar en el cliente o con verificaciones más robustas.
 
   return NextResponse.next()
 }

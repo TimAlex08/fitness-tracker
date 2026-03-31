@@ -1,4 +1,5 @@
-import type { WeekData, MonthData, YearData } from "@/features/training/types/training.types"
+// features/training/api/training-repository.ts
+import type { WeekData, MonthData, YearData } from "../types/training.types"
 
 export interface TrainingRepository {
   getWeekData(date: Date, userId: string): Promise<WeekData>

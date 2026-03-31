@@ -1,6 +1,7 @@
+// features/session/api/prisma-session-repository.ts
 import { prisma } from "@/lib/prisma"
 import type { DailyLog, ExerciseLog, CompletionStatus } from "@prisma/client"
-import type { TodayResponse, RoutineWithExercises, DailyLogWithExercises } from "@/types"
+import type { TodayResponse, DailyLogWithExercises } from "@/types"
 import type {
   SessionRepository,
   UpsertDailyLogInput,
@@ -8,11 +9,6 @@ import type {
   UpdateExerciseLogInput,
 } from "./session-repository"
 import { parseRepsPerSet, serializeRepsPerSet } from "@/features/session/services/session.service"
-
-function getTodayName(): string {
-  const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
-  return dayNames[new Date().getDay()]
-}
 
 function getTodayRange() {
   const start = new Date()
@@ -23,67 +19,20 @@ function getTodayRange() {
 }
 
 export class PrismaSessionRepository implements SessionRepository {
-  async getTodayRoutine(userId: string): Promise<RoutineWithExercises | null> {
-    const todayName = getTodayName()
-
-    const program = await prisma.program.findFirst({
-      where: { isActive: true, userId },
-      include: {
-        phases: {
-          orderBy: { order: "asc" },
-          take: 1,
-          include: {
-            programDays: {
-              where: { dayOfWeek: todayName },
-              orderBy: { createdAt: "asc" },
-              include: {
-                routine: {
-                  include: {
-                    exercises: {
-                      include: { exercise: true },
-                      orderBy: { order: "asc" },
-                    },
-                  },
-                },
-                overrides: true,
-              },
-            },
-          },
-        },
-      },
-    })
-
-    if (!program?.phases[0]?.programDays[0]) return null
-
-    const programDay = program.phases[0].programDays[0]
-    const routine = programDay.routine
-
-    // Aplicar overrides sobre los parámetros base
-    if (programDay.overrides.length === 0) return routine
-
-    return {
-      ...routine,
-      exercises: routine.exercises.map((re) => {
-        const override = programDay.overrides.find((o) => o.exerciseId === re.exerciseId)
-        if (!override) return re
-        return {
-          ...re,
-          sets: override.sets ?? re.sets,
-          reps: override.reps ?? re.reps,
-          durationSec: override.durationSec ?? re.durationSec,
-          restSec: override.restSec ?? re.restSec,
-          tempo: override.tempo ?? re.tempo,
-          rpe: override.rpe ?? re.rpe,
-          notes: override.notes ?? re.notes,
-        }
-      }),
-    }
+  async getTodayData(userId: string): Promise<TodayResponse> {
+    const dailyLogs = await this.getTodayLogs(userId)
+    // TODO(Plan B): wire CalendarService here
+    return { entries: [], dailyLogs, isRestDay: true }
   }
 
   async getTodayLog(userId: string): Promise<DailyLogWithExercises | null> {
-    const { start, end } = getTodayRange()
+    const logs = await this.getTodayLogs(userId)
+    return logs[0] ?? null
+  }
 
-    return prisma.dailyLog.findFirst({
+  private async getTodayLogs(userId: string): Promise<DailyLogWithExercises[]> {
+    const { start, end } = getTodayRange()
+    return prisma.dailyLog.findMany({
       where: { userId, date: { gte: start, lte: end } },
       include: {
         routine: true,
@@ -95,23 +44,15 @@ export class PrismaSessionRepository implements SessionRepository {
     })
   }
 
-  async getTodayData(userId: string): Promise<TodayResponse> {
-    const [routine, dailyLog] = await Promise.all([
-      this.getTodayRoutine(userId),
-      this.getTodayLog(userId),
-    ])
-    return { routine, dailyLog, isFreeDay: !routine }
-  }
-
   async upsertTodayLog(userId: string, input: UpsertDailyLogInput): Promise<DailyLog> {
     const { start, end } = getTodayRange()
     const existing = await prisma.dailyLog.findFirst({
-      where: { userId, date: { gte: start, lte: end } },
+      where: { userId, date: { gte: start, lte: end }, routineId: input.routineId ?? null },
     })
 
     const data = {
       routineId: input.routineId ?? null,
-      isFreeSession: input.isFreeSession ?? false,
+      source: (input.source ?? "SCHEDULED") as "SCHEDULED" | "AD_HOC",
       status: (input.status ?? "PENDING") as CompletionStatus,
       startedAt: input.startedAt ? new Date(input.startedAt) : undefined,
       finishedAt: input.finishedAt ? new Date(input.finishedAt) : undefined,

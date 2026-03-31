@@ -70,7 +70,10 @@ type FormData = {
   movementType: string
   category: string
   difficulty: number
-  parentId: string
+  // parentId: string // Removed in Plan A
+  familyId: string
+  familyLevel: string
+  familyRole: string
   defaultSets: string
   defaultReps: string
   defaultDurationSec: string
@@ -88,7 +91,6 @@ type ExerciseFormProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   exercise?: Exercise | null
-  allExercises: Exercise[]
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -111,7 +113,10 @@ function exerciseToForm(exercise: Exercise): FormData {
     movementType: exercise.movementType,
     category: exercise.category,
     difficulty: exercise.difficulty,
-    parentId: exercise.parentId ?? "",
+    // parentId: exercise.parentId ?? "",
+    familyId: exercise.familyId ?? "",
+    familyLevel: exercise.familyLevel?.toString() ?? "",
+    familyRole: exercise.familyRole ?? "",
     defaultSets: exercise.defaultSets?.toString() ?? "",
     defaultReps: exercise.defaultReps?.toString() ?? "",
     defaultDurationSec: exercise.defaultDurationSec?.toString() ?? "",
@@ -134,7 +139,10 @@ const EMPTY_FORM: FormData = {
   movementType: "",
   category: "STANDARD",
   difficulty: 1,
-  parentId: "",
+  // parentId: "",
+  familyId: "",
+  familyLevel: "",
+  familyRole: "MAIN_PATH",
   defaultSets: "3",
   defaultReps: "",
   defaultDurationSec: "",
@@ -200,7 +208,6 @@ export function ExerciseForm({
   open,
   onOpenChange,
   exercise,
-  allExercises,
 }: ExerciseFormProps) {
   const router = useRouter()
   const isEditing = !!exercise
@@ -243,7 +250,10 @@ export function ExerciseForm({
       movementType: form.movementType,
       category: form.category,
       difficulty: form.difficulty,
-      parentId: form.parentId || null,
+      // parentId: form.parentId || null,
+      familyId: form.familyId || null,
+      familyLevel: form.familyLevel ? parseInt(form.familyLevel) : null,
+      familyRole: form.familyRole || null,
       defaultSets: form.defaultSets ? parseInt(form.defaultSets) : null,
       defaultReps: form.defaultReps ? parseInt(form.defaultReps) : null,
       defaultDurationSec: form.defaultDurationSec
@@ -291,9 +301,6 @@ export function ExerciseForm({
       setSaving(false)
     }
   }
-
-  // Exercises available as parent (exclude itself and its descendants)
-  const parentOptions = allExercises.filter((ex) => ex.id !== exercise?.id)
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -449,27 +456,7 @@ export function ExerciseForm({
             </div>
           </div>
 
-          {/* Jerarquía */}
-          <Field label="Ejercicio padre" hint="Para regressions/progressions. Indica el ejercicio estándar del que deriva.">
-            <Select
-              value={form.parentId || "none"}
-              onValueChange={(v) => set("parentId", v === "none" ? "" : v)}
-            >
-              <SelectTrigger className="bg-zinc-800 border-zinc-700 text-white">
-                <SelectValue placeholder="Ninguno" />
-              </SelectTrigger>
-              <SelectContent className="bg-zinc-900 border-zinc-700 max-h-48">
-                <SelectItem value="none" className="text-zinc-400">
-                  Ninguno
-                </SelectItem>
-                {parentOptions.map((ex) => (
-                  <SelectItem key={ex.id} value={ex.id} className="text-zinc-300">
-                    {ex.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </Field>
+          {/* TODO(Plan E): Implement ExerciseFamily fields (familyId, level, role) */}
 
           {/* Seguridad */}
           <Field label="Articulaciones comprometidas" hint="Ej: rodillas, hombro anterior">

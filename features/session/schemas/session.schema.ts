@@ -24,7 +24,7 @@ export const upsertDailyLogSchema = z.object({
   watchActiveMinutes: z.number().int().min(0).max(600).optional(),
   watchSpO2: z.number().min(70).max(100).optional(),
   watchStressScore: z.number().int().min(0).max(100).optional(),
-  watchHrZones: z.unknown().optional(),
+  watchHrZones: z.array(z.number()).optional(),
 })
 
 export const upsertExerciseLogSchema = z.object({
