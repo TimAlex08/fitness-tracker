@@ -1,11 +1,12 @@
 import type {
   Exercise,
+  ExerciseFamily,
+  Collection,
   Program,
-  Phase,
+  ProgramRoutine,
+  ScheduleOverride,
   Routine,
   RoutineExercise,
-  ProgramDay,
-  ExerciseOverride,
   DailyLog,
   ExerciseLog,
   BodyMeasurement,
@@ -16,9 +17,12 @@ import type {
   SessionType,
   CompletionStatus,
   FormQuality,
+  FamilyRole,
+  ScheduleOverrideType,
+  SessionSource,
 } from "@prisma/client"
 
-// ---------- Re-export Prisma enums ---------- //
+// ─── Re-export Prisma enums ───────────────────────────────────────────────────
 
 export type {
   MuscleGroup,
@@ -28,35 +32,38 @@ export type {
   SessionType,
   CompletionStatus,
   FormQuality,
+  FamilyRole,
+  ScheduleOverrideType,
+  SessionSource,
 }
 
-// ---------- Re-export model types ---------- //
+// ─── Re-export model types ────────────────────────────────────────────────────
 
 export type {
   Exercise,
+  ExerciseFamily,
+  Collection,
   Program,
-  Phase,
+  ProgramRoutine,
+  ScheduleOverride,
   Routine,
   RoutineExercise,
-  ProgramDay,
-  ExerciseOverride,
   DailyLog,
   ExerciseLog,
   BodyMeasurement,
 }
 
-// ---------- Ejercicio con relaciones ---------- //
+// ─── Exercise with family ─────────────────────────────────────────────────────
 
-export interface ExerciseWithVariants extends Exercise {
-  parent: Exercise | null
-  variants: Exercise[]
+export interface ExerciseWithFamily extends Exercise {
+  family: ExerciseFamily | null
 }
 
 export interface ExerciseWithLogs extends Exercise {
   exerciseLogs: ExerciseLog[]
 }
 
-// ---------- Rutina con ejercicios ---------- //
+// ─── Routine with exercises ───────────────────────────────────────────────────
 
 export interface RoutineExerciseWithDetails extends RoutineExercise {
   exercise: Exercise
@@ -66,24 +73,26 @@ export interface RoutineWithExercises extends Routine {
   exercises: RoutineExerciseWithDetails[]
 }
 
-// ---------- ProgramDay con rutina y overrides ---------- //
+// ─── ProgramRoutine with routine and overrides ────────────────────────────────
 
-export interface ProgramDayWithRoutine extends ProgramDay {
+export interface ProgramRoutineWithDetails extends ProgramRoutine {
   routine: RoutineWithExercises
-  overrides: ExerciseOverride[]
+  overrides: ScheduleOverride[]
 }
 
-// ---------- Programa con jerarquía completa ---------- //
+// ─── Program with routines ────────────────────────────────────────────────────
 
-export interface PhaseWithDays extends Phase {
-  programDays: ProgramDayWithRoutine[]
+export interface ProgramWithRoutines extends Program {
+  programRoutines: ProgramRoutineWithDetails[]
 }
 
-export interface ProgramWithPhases extends Program {
-  phases: PhaseWithDays[]
+// ─── Collection with programs ─────────────────────────────────────────────────
+
+export interface CollectionWithPrograms extends Collection {
+  programs: Program[]
 }
 
-// ---------- DailyLog con ejercicios ---------- //
+// ─── DailyLog with exercises ──────────────────────────────────────────────────
 
 export interface ExerciseLogWithExercise extends ExerciseLog {
   exercise: Exercise
@@ -94,21 +103,28 @@ export interface DailyLogWithExercises extends DailyLog {
   exerciseLogs: ExerciseLogWithExercise[]
 }
 
-// ---------- /today response ---------- //
+// ─── /today response ─────────────────────────────────────────────────────────
 
-export interface TodayResponse {
-  routine: RoutineWithExercises | null
-  dailyLog: DailyLogWithExercises | null
-  isFreeDay: boolean
+export interface TodayRoutineEntry {
+  routineId: string
+  programRoutineId: string
+  source: "PATTERN" | "OVERRIDE_ADDED" | "OVERRIDE_MOVED"
+  routine: RoutineWithExercises
 }
 
-// ---------- Bloque de ejercicios (agrupación UI) ---------- //
+export interface TodayResponse {
+  entries: TodayRoutineEntry[]
+  dailyLogs: DailyLogWithExercises[]
+  isRestDay: boolean
+}
+
+// ─── Exercise block (UI grouping) ─────────────────────────────────────────────
 
 export interface ExerciseBlock {
   name: string
   exercises: RoutineExerciseWithDetails[]
 }
 
-// ---------- Reps parsed ---------- //
+// ─── Reps parsed ─────────────────────────────────────────────────────────────
 
 export type RepsPerSet = number[]
